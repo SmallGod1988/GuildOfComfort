@@ -1,0 +1,50 @@
+# Продакшн-деплой на VPS: `docker compose -f docker-compose.prod.yml up -d --build`
+# Требует .env рядом с этим файлом (см. .env.example + инструкции в DEPLOY.md).
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-goc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-guild_of_comfort}
+    volumes:
+      - goc_pgdata_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-goc}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Одноразово применяет миграции и сеет админа/справочник материалов:
+  #   docker compose -f docker-compose.prod.yml run --rm migrate
+  migrate:
+    build:
+      context: .
+      target: builder
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-goc}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-guild_of_comfort}?schema=public}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed"]
+
+  app:
+    build:
+      context: .
+      target: runner
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-goc}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-guild_of_comfort}?schema=public}
+      AUTH_SECRET: ${AUTH_SECRET:?set a long random AUTH_SECRET in .env}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  goc_pgdata_prod:

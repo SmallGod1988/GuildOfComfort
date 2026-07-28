@@ -1,0 +1,8 @@
+# Пример конфигурации Caddy для автоматического HTTPS перед контейнером app.
+# Использование: установите Caddy на сервере (или добавьте его отдельным
+# сервисом в docker-compose.prod.yml), скопируйте этот файл в /etc/caddy/Caddyfile,
+# подставьте свой домен и перезапустите caddy.
+
+your-domain.example {
+	reverse_proxy localhost:3000
+}
