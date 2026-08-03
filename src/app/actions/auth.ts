@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import {
+  COOKIE_SECURE,
   SESSION_COOKIE_NAME,
   SESSION_MAX_AGE,
   createSessionToken,
@@ -46,7 +47,7 @@ export async function loginAction(
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: COOKIE_SECURE,
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_MAX_AGE,
@@ -102,7 +103,7 @@ export async function registerAction(
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: COOKIE_SECURE,
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_MAX_AGE,

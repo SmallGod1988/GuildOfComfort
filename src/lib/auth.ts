@@ -21,6 +21,13 @@ export const SESSION_COOKIE_NAME = "goc_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 дней
 export const SESSION_MAX_AGE = SESSION_TTL_SECONDS;
 
+// Browsers refuse to store `Secure` cookies over a plain-HTTP connection,
+// which is the common case for a fresh deploy without a domain/TLS yet.
+// This must be opted into explicitly once the site is actually served over
+// HTTPS (e.g. via Caddy with a domain) — NODE_ENV=production alone doesn't
+// mean the connection is HTTPS.
+export const COOKIE_SECURE = process.env.COOKIE_SECURE === "true";
+
 export async function hashPassword(password: string) {
   return bcrypt.hash(password, 10);
 }
