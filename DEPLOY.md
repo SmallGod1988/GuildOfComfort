@@ -60,6 +60,64 @@
      `COOKIE_SECURE` в этом случае трогать не нужно, оставьте по
      умолчанию.
 
+### Подключение своего домена и HTTPS — пошагово
+
+Если пока заходите по `http://IP:3000` и хотите нормальный адрес вида
+`https://guildofcomfort.ru`:
+
+1. **Купите домен** — например, на [reg.ru](https://www.reg.ru) или любом
+   другом регистраторе (для российской компании удобнее локальный —
+   не будет проблем с оплатой). `.ru`-домен стоит порядка 200–300 ₽/год.
+
+2. **Настройте DNS**: в панели регистратора найдите раздел DNS-записей
+   (обычно «Управление DNS» / «DNS-записи») и добавьте:
+   - Тип: **A**
+   - Имя/хост: `@` (сам домен) — при желании ещё и `www`
+   - Значение: IP вашего сервера (например, `158.255.0.71`)
+
+   Изменения расходятся по интернету от нескольких минут до пары часов.
+   Проверить можно на [dnschecker.org](https://dnschecker.org) — введите
+   домен, должен показать ваш IP по всему миру.
+
+3. **На сервере откройте порты 80 и 443** (нужны Caddy для получения
+   сертификата и приёма HTTPS-трафика):
+   ```bash
+   ufw allow 80/tcp
+   ufw allow 443/tcp
+   ```
+
+4. **Установите Caddy**:
+   ```bash
+   apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
+   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+   apt update
+   apt install -y caddy
+   ```
+
+5. **Настройте Caddy** — впишите свой домен в конфиг:
+   ```bash
+   cat > /etc/caddy/Caddyfile <<'EOF'
+   ваш-домен.ru {
+       reverse_proxy localhost:3000
+   }
+   EOF
+   systemctl reload caddy
+   ```
+   Caddy сам получит бесплатный сертификат Let's Encrypt — это займёт
+   несколько секунд, если DNS уже разошёлся (шаг 2).
+
+6. **Включите secure-cookie** в приложении:
+   ```bash
+   cd /opt/guildofcomfort
+   echo "COOKIE_SECURE=true" >> .env
+   docker compose -f docker-compose.prod.yml up -d --build app
+   ```
+
+7. Готово — открывайте `https://ваш-домен.ru`. Порт `3000` наружу можно
+   больше не открывать (только `80`/`443`), но firewall-правило не
+   мешает, если оставите.
+
 7. **Обновление после изменений в коде**:
    ```bash
    git pull
