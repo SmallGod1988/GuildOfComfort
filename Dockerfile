@@ -3,7 +3,11 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+# --ignore-scripts: skip the "postinstall" (prisma generate) here — only
+# package.json/lock are present in this layer yet, not prisma/schema.prisma.
+# The builder stage below runs `prisma generate` explicitly once the full
+# source is copied in.
+RUN npm ci --ignore-scripts
 
 # Full build: has the Prisma CLI + all source, used both to build the app
 # and (via `docker compose run migrate`) to run migrations/seed.
