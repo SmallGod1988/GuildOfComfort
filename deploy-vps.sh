@@ -3,6 +3,11 @@
 # Запускать от root: ssh root@151.241.217.218, затем выполнить этот скрипт.
 set -euo pipefail
 
+# Не дать apt/needrestart открывать интерактивные диалоги (какие службы
+# перезапустить и т.п.) — скрипт должен идти от начала до конца без ввода.
+export DEBIAN_FRONTEND=noninteractive
+export NEEDRESTART_MODE=a
+
 REPO_URL="https://github.com/SmallGod1988/GuildOfComfort.git"
 BRANCH="claude/company-app-project-xxhilu"
 APP_DIR="/opt/guildofcomfort"
