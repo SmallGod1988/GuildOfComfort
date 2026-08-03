@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import ActionForm from "@/components/ActionForm";
 import {
+  assignCustomerAction,
   assignInstallerAction,
   unassignInstallerAction,
   updateSiteStatusAction,
@@ -31,9 +32,10 @@ export default async function AdminSiteDetailPage({
   });
   if (!site) notFound();
 
-  const [allInstallers, materials] = await Promise.all([
+  const [allInstallers, materials, customers] = await Promise.all([
     prisma.user.findMany({ where: { role: "INSTALLER" }, orderBy: { fullName: "asc" } }),
     prisma.material.findMany({ orderBy: { name: "asc" } }),
+    prisma.user.findMany({ where: { role: "CUSTOMER" }, orderBy: { fullName: "asc" } }),
   ]);
   const assignedIds = new Set(site.installers.map((i) => i.installerId));
   const availableInstallers = allInstallers.filter((i) => !assignedIds.has(i.id));
@@ -45,8 +47,37 @@ export default async function AdminSiteDetailPage({
       </p>
       <h1>{site.name}</h1>
       <p className="hint">
-        {site.address} · Заказчик: {site.customer.fullName}
+        {site.address} · Заказчик: {site.customer?.fullName ?? "не назначен"}
       </p>
+
+      {!site.customer && (
+        <div className="section card">
+          <h2>Прикрепить заказчика</h2>
+          {customers.length === 0 ? (
+            <p className="hint">
+              Пока нет ни одного зарегистрированного заказчика — попросите его
+              зарегистрироваться на странице /register, потом вернитесь сюда.
+            </p>
+          ) : (
+            <ActionForm action={assignCustomerAction} submitLabel="Прикрепить">
+              <input type="hidden" name="siteId" value={site.id} />
+              <div className="field">
+                <label htmlFor="customerId">Заказчик</label>
+                <select id="customerId" name="customerId" required defaultValue="">
+                  <option value="" disabled>
+                    Выберите заказчика
+                  </option>
+                  {customers.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.fullName} ({c.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </ActionForm>
+          )}
+        </div>
+      )}
 
       <div className="section card">
         <h2>Статус объекта: {STATUS_LABEL[site.status]}</h2>

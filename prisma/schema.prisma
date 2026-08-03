@@ -76,8 +76,8 @@ model Site {
   id         String     @id @default(cuid())
   name       String
   address    String
-  customerId String
-  customer   User       @relation("CustomerSites", fields: [customerId], references: [id])
+  customerId String?
+  customer   User?      @relation("CustomerSites", fields: [customerId], references: [id])
   status     SiteStatus @default(ACTIVE)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt

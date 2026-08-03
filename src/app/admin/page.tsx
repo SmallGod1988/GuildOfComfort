@@ -22,36 +22,33 @@ export default async function AdminSitesPage() {
 
       <div className="section card">
         <h2>Новый объект</h2>
-        {customers.length === 0 ? (
-          <p className="hint">
-            Пока нет ни одного зарегистрированного заказчика. Попросите заказчика
-            зарегистрироваться, затем создайте объект.
-          </p>
-        ) : (
-          <ActionForm action={createSiteAction} submitLabel="Создать объект">
-            <div className="field">
-              <label htmlFor="name">Название объекта</label>
-              <input id="name" name="name" required />
-            </div>
-            <div className="field">
-              <label htmlFor="address">Адрес</label>
-              <input id="address" name="address" required />
-            </div>
-            <div className="field">
-              <label htmlFor="customerId">Заказчик</label>
-              <select id="customerId" name="customerId" required defaultValue="">
-                <option value="" disabled>
-                  Выберите заказчика
+        <ActionForm action={createSiteAction} submitLabel="Создать объект">
+          <div className="field">
+            <label htmlFor="name">Название объекта</label>
+            <input id="name" name="name" required />
+          </div>
+          <div className="field">
+            <label htmlFor="address">Адрес</label>
+            <input id="address" name="address" required />
+          </div>
+          <div className="field">
+            <label htmlFor="customerId">Заказчик</label>
+            <select id="customerId" name="customerId" defaultValue="">
+              <option value="">— без заказчика (можно прикрепить позже) —</option>
+              {customers.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.fullName} ({c.email})
                 </option>
-                {customers.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.fullName} ({c.email})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </ActionForm>
-        )}
+              ))}
+            </select>
+            {customers.length === 0 && (
+              <p className="hint">
+                Пока нет ни одного зарегистрированного заказчика — можно создать
+                объект без него и прикрепить заказчика позже со страницы объекта.
+              </p>
+            )}
+          </div>
+        </ActionForm>
       </div>
 
       <div className="section">
@@ -79,7 +76,7 @@ export default async function AdminSitesPage() {
                       <Link href={`/admin/sites/${site.id}`}>{site.name}</Link>
                       <div className="hint">{site.address}</div>
                     </td>
-                    <td>{site.customer.fullName}</td>
+                    <td>{site.customer?.fullName ?? <span className="hint">не назначен</span>}</td>
                     <td>
                       <span className="badge">{SITE_STATUS_LABEL[site.status]}</span>
                     </td>
