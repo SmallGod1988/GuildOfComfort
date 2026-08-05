@@ -5,6 +5,7 @@ import ActionForm from "@/components/ActionForm";
 import {
   assignCustomerAction,
   assignInstallerAction,
+  setForemanAction,
   unassignInstallerAction,
   updateSiteStatusAction,
 } from "@/app/actions/sites";
@@ -137,6 +138,10 @@ export default async function AdminSiteDetailPage({
       <div className="grid-2">
         <div className="section card">
           <h2>Монтажники на объекте</h2>
+          <p className="hint">
+            Бригадир может вести табель за монтажников этого объекта — остальные
+            вносят часы только за себя.
+          </p>
           {site.installers.length === 0 ? (
             <p className="empty">Никто не назначен.</p>
           ) : (
@@ -144,13 +149,30 @@ export default async function AdminSiteDetailPage({
               <tbody>
                 {site.installers.map((si) => (
                   <tr key={si.id}>
-                    <td>{si.installer.fullName}</td>
                     <td>
-                      <form action={unassignInstallerAction.bind(null, site.id, si.installerId)}>
-                        <button type="submit" className="danger">
-                          Снять
-                        </button>
-                      </form>
+                      {si.installer.fullName}
+                      {si.isForeman && <div className="hint">бригадир</div>}
+                    </td>
+                    <td>
+                      <div className="btn-row">
+                        <form
+                          action={setForemanAction.bind(
+                            null,
+                            site.id,
+                            si.installerId,
+                            !si.isForeman
+                          )}
+                        >
+                          <button type="submit" className="secondary">
+                            {si.isForeman ? "Снять бригадирство" : "Сделать бригадиром"}
+                          </button>
+                        </form>
+                        <form action={unassignInstallerAction.bind(null, site.id, si.installerId)}>
+                          <button type="submit" className="danger">
+                            Снять
+                          </button>
+                        </form>
+                      </div>
                     </td>
                   </tr>
                 ))}

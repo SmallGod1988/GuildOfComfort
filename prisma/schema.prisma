@@ -92,12 +92,15 @@ model Site {
 }
 
 // Монтажники, назначенные на объект (многие-ко-многим).
+// Бригадирство привязано к объекту: на одном объекте монтажник может быть
+// бригадиром (и вести табель за бригаду), на другом — обычным исполнителем.
 model SiteInstaller {
   id          String   @id @default(cuid())
   siteId      String
   site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
   installerId String
   installer   User     @relation(fields: [installerId], references: [id])
+  isForeman   Boolean  @default(false)
   assignedAt  DateTime @default(now())
 
   @@unique([siteId, installerId])

@@ -530,7 +530,7 @@
     <a href="#cikl">Жизненный цикл задачи</a>
     <a href="#put">Сквозной путь по скелету</a>
     <div class="gap"></div>
-    <a href="#stories">User stories · 41</a>
+    <a href="#stories">User stories · 42</a>
     <a class="sub" href="#gr-a">A. Доступ в систему</a>
     <a class="sub" href="#gr-b">B. Справочники и техкарты</a>
     <a class="sub" href="#gr-c">C. Запуск объекта</a>
@@ -559,7 +559,7 @@
         странице, этого нет и в приложении.
       </p>
       <p class="meta">
-        <span><b>41</b> история</span>
+        <span><b>42</b> истории</span>
         <span><b>12</b> сценариев</span>
         <span><b>10</b> активностей</span>
         <span><b>3</b> роли</span>
@@ -611,7 +611,7 @@
               <td><span class="chip"><i class="dot m"></i>Монтажник</span></td>
               <td>исполнитель на объекте</td>
               <td>регистрируется сам на <code>/register</code></td>
-              <td>берёт свободные задачи, ведёт их по статусам, списывает материалы, вносит часы</td>
+              <td>берёт свободные задачи, ведёт их по статусам, списывает материалы, вносит часы; бригадир объекта — ещё и за свою бригаду</td>
             </tr>
             <tr>
               <td><span class="chip"><i class="dot z"></i>Заказчик</span></td>
@@ -717,7 +717,7 @@ erDiagram
 
           <div class="colhead"><span class="key">A</span><span class="name">Доступ в систему</span><span class="count">5 историй</span></div>
           <div class="colhead"><span class="key">B</span><span class="name">Справочники и техкарты</span><span class="count">6 историй</span></div>
-          <div class="colhead"><span class="key">C</span><span class="name">Запуск объекта</span><span class="count">6 историй</span></div>
+          <div class="colhead"><span class="key">C</span><span class="name">Запуск объекта</span><span class="count">7 историй</span></div>
           <div class="colhead"><span class="key">D</span><span class="name">Планирование работ</span><span class="count">3 истории</span></div>
           <div class="colhead"><span class="key">E</span><span class="name">Снабжение объекта</span><span class="count">2 истории</span></div>
           <div class="colhead"><span class="key">F</span><span class="name">Выполнение работ</span><span class="count">8 историй</span></div>
@@ -762,7 +762,7 @@ erDiagram
             <div class="cell"><span class="none">—</span></div>
           </div>
 
-          <div class="rail"><span class="band-n">ПОЛОСА 2</span><span class="band-name">Остальной MVP</span><span class="band-count">27</span></div>
+          <div class="rail"><span class="band-n">ПОЛОСА 2</span><span class="band-name">Остальной MVP</span><span class="band-count">28</span></div>
 
           <div class="cell">
             <div class="card"><span class="id"><i class="dot x"></i>US-03</span><span class="t">Выход из системы</span></div>
@@ -779,6 +779,7 @@ erDiagram
             <div class="card"><span class="id"><i class="dot a"></i>US-15</span><span class="t">Снять монтажника с объекта</span></div>
             <div class="card"><span class="id"><i class="dot a"></i>US-16</span><span class="t">Менять статус объекта</span></div>
             <div class="card"><span class="id"><i class="dot a"></i>US-17</span><span class="t">Все объекты с прогрессом</span></div>
+            <div class="card"><span class="id"><i class="dot a"></i>US-42</span><span class="t">Назначить бригадира</span></div>
           </div>
           <div class="cell">
             <div class="card"><span class="id"><i class="dot a"></i>US-20</span><span class="t">Задачи подпроекта со статусами</span></div>
@@ -903,7 +904,7 @@ stateDiagram-v2
     <section class="sec" id="stories">
       <h2>User stories</h2>
       <p>
-        Все 41 история реализованной функциональности с критериями приёмки,
+        Все 42 истории реализованной функциональности с критериями приёмки,
         отражающими фактическое поведение кода — включая ограничения. У каждой
         истории указан файл, где она реализована.
       </p>
@@ -1082,6 +1083,18 @@ stateDiagram-v2
             <li>Кнопка «Снять» в строке монтажника.</li>
             <li>Монтажник теряет доступ к объекту и его задачам.</li>
             <li>Задачи, уже закреплённые за этим монтажником, остаются закреплёнными за ним — автоматически они не освобождаются.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/sites/[siteId]/page.tsx · src/app/actions/sites.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-42">
+          <div class="head"><span class="sid">US-42</span><h4>Назначить бригадира на объекте</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> назначить одного из монтажников бригадиром на объекте, <b>чтобы</b> он вёл табель за всю бригаду и остальным не приходилось заполнять его самим.</p>
+          <ul>
+            <li>В строке каждого назначенного монтажника — кнопка «Сделать бригадиром» / «Снять бригадирство», у текущего бригадира стоит пометка.</li>
+            <li>Бригадирство привязано к <b>объекту</b>: на одном объекте монтажник может быть бригадиром, на другом — обычным исполнителем.</li>
+            <li>Бригадиров на объекте может быть несколько — ограничения нет.</li>
+            <li>Сразу после назначения у монтажника в табеле появляется выбор монтажника (US-34); после снятия — исчезает, и сервер перестаёт принимать от него записи за других.</li>
           </ul>
           <p class="src">Реализовано: src/app/admin/sites/[siteId]/page.tsx · src/app/actions/sites.ts</p>
         </article>
@@ -1314,20 +1327,24 @@ stateDiagram-v2
           <div class="head"><span class="sid">US-34</span><h4>Внести отработанные часы</h4><span class="who-tag">Монтажник</span></div>
           <p class="want"><b>Как</b> монтажник, <b>я хочу</b> записать отработанные часы, <b>чтобы</b> они попали в табель для расчёта.</p>
           <ul>
-            <li>Форма: дата (по умолчанию сегодня), часы, объект (необязательно), комментарий.</li>
+            <li>Экран рассчитан на телефон: сегмент «Ввод / Данные», быстрые кнопки «Вчера / Сегодня», чипы последних объектов, тач-цели не меньше 44px.</li>
+            <li>Форма: монтажник, дата (по умолчанию сегодня), часы, объект (необязательно), комментарий.</li>
             <li>Часы — больше нуля и не больше 24, шаг 0.5.</li>
             <li>В выборе объекта — только те объекты, на которые я назначен.</li>
-            <li>Запись всегда сохраняется на меня: подменить исполнителя через форму невозможно, идентификатор берётся из сессии.</li>
+            <li>Обычный монтажник видит своё имя неизменяемой строкой — записать часы на другого он не может.</li>
+            <li>Бригадир (US-42) видит выбор монтажника и может внести часы за монтажника своей бригады; выбор монтажника и объекта остаётся согласованной парой.</li>
+            <li><b>Сервер проверяет права заново, независимо от формы.</b> При записи за другого: объект обязателен, автор должен быть бригадиром именно на этом объекте, целевой монтажник — назначен на него.</li>
           </ul>
-          <p class="src">Реализовано: src/app/installer/timesheet/page.tsx · src/app/actions/timesheet.ts</p>
+          <p class="src">Реализовано: src/app/installer/timesheet/page.tsx · src/components/TimesheetForm.tsx · src/app/actions/timesheet.ts</p>
         </article>
 
         <article class="story r-m" id="US-35">
           <div class="head"><span class="sid">US-35</span><h4>Видеть свои записи табеля</h4><span class="who-tag">Монтажник</span></div>
           <p class="want"><b>Как</b> монтажник, <b>я хочу</b> видеть свой табель, <b>чтобы</b> проверить, всё ли я внёс.</p>
           <ul>
-            <li>Таблица: дата, часы, объект, комментарий — от новых дат к старым.</li>
-            <li>Видны только мои записи; чужие недоступны.</li>
+            <li>Вкладка «Данные»: дата, объект, часы, комментарий — от новых дат к старым, последние 100 записей.</li>
+            <li>Обычный монтажник видит только свои записи; чужие недоступны.</li>
+            <li>Бригадир дополнительно видит записи бригады по объектам, где он бригадир — он же их и вносит. Чужое имя в такой записи подписано.</li>
           </ul>
           <p class="src">Реализовано: src/app/installer/timesheet/page.tsx</p>
         </article>

@@ -57,7 +57,8 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 12px 16px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   padding: 12px 16px;
@@ -93,6 +94,13 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 10px;
+  /* На телефоне длинное имя не должно распирать шапку вбок. */
+  min-width: 0;
+}
+
+.topbar-user span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .card {
@@ -305,4 +313,253 @@ th {
   .grid-2 {
     grid-template-columns: 1fr;
   }
+}
+
+/* ===================================================================
+   Экран табеля монтажника (мобильный).
+   Собственная палитра, намеренно изолированная префиксом .ts-: экран
+   рассчитан на телефон и живёт по своим правилам, остальное приложение
+   не затрагивается.
+   =================================================================== */
+
+.ts-screen {
+  --ts-accent: #2f5fe0;
+  --ts-accent-soft: #e8edfd;
+  --ts-ink: #101318;
+  --ts-line: #e3e6eb;
+  --ts-muted: #6b7280;
+  --ts-radius: 12px;
+
+  max-width: 440px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ts-screen h1 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.ts-seg {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: #eef0f3;
+  border-radius: var(--ts-radius);
+}
+
+.ts-seg a {
+  flex: 1;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--ts-muted);
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.ts-seg a:hover {
+  text-decoration: none;
+}
+
+.ts-seg a[aria-current="page"] {
+  background: var(--ts-ink);
+  color: #fff;
+}
+
+.ts-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ts-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ts-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--ts-line);
+  border-radius: var(--ts-radius);
+}
+
+.ts-field:focus-within {
+  border-color: var(--ts-accent);
+  box-shadow: 0 0 0 3px var(--ts-accent-soft);
+}
+
+.ts-field .ts-icon {
+  flex: none;
+  color: var(--ts-muted);
+  display: flex;
+}
+
+.ts-field .ts-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ts-field label,
+.ts-field .ts-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--ts-muted);
+}
+
+.ts-field input,
+.ts-field select {
+  font: inherit;
+  font-size: 1rem;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ts-ink);
+}
+
+.ts-field input:focus,
+.ts-field select:focus {
+  outline: none;
+}
+
+.ts-field .ts-static {
+  font-size: 1rem;
+  color: var(--ts-ink);
+}
+
+.ts-field .ts-suffix {
+  flex: none;
+  color: var(--ts-muted);
+  font-size: 0.9rem;
+}
+
+.ts-quick {
+  display: flex;
+  gap: 8px;
+}
+
+.ts-quick button {
+  flex: 1;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid var(--ts-line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ts-ink);
+  font-size: 0.92rem;
+}
+
+.ts-quick button:hover {
+  background: #f4f6f9;
+  border-color: var(--ts-line);
+}
+
+.ts-quick button[aria-pressed="true"],
+.ts-quick button[aria-pressed="true"]:hover {
+  background: var(--ts-accent);
+  border-color: var(--ts-accent);
+  color: #fff;
+}
+
+.ts-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ts-chip {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--ts-line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ts-ink);
+  font-size: 0.88rem;
+}
+
+.ts-chip:hover {
+  background: #f4f6f9;
+  border-color: var(--ts-line);
+}
+
+.ts-chip[aria-pressed="true"],
+.ts-chip[aria-pressed="true"]:hover {
+  background: var(--ts-accent-soft);
+  border-color: var(--ts-accent);
+  color: var(--ts-accent);
+}
+
+.ts-caption {
+  font-size: 0.78rem;
+  color: var(--ts-muted);
+}
+
+.ts-submit {
+  width: 100%;
+  justify-content: center;
+  min-height: 52px;
+  margin-top: 4px;
+  border: 1px solid var(--ts-ink);
+  border-radius: var(--ts-radius);
+  background: var(--ts-ink);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.ts-submit:hover:not(:disabled) {
+  background: #000;
+  border-color: #000;
+}
+
+.ts-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.ts-entry {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--ts-line);
+  border-radius: var(--ts-radius);
+}
+
+.ts-entry .ts-date {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+  color: var(--ts-muted);
+}
+
+.ts-entry .ts-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ts-entry .ts-hours {
+  flex: none;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ts-entry .ts-who {
+  font-size: 0.78rem;
+  color: var(--ts-accent);
 }

@@ -98,6 +98,22 @@ export async function unassignInstallerAction(siteId: string, installerId: strin
   await requireRole("ADMIN");
   await prisma.siteInstaller.deleteMany({ where: { siteId, installerId } });
   revalidatePath(`/admin/sites/${siteId}`);
+  revalidatePath("/installer/timesheet");
+}
+
+// Бригадир объекта: может вести табель за монтажников этого же объекта.
+export async function setForemanAction(
+  siteId: string,
+  installerId: string,
+  isForeman: boolean
+) {
+  await requireRole("ADMIN");
+  await prisma.siteInstaller.updateMany({
+    where: { siteId, installerId },
+    data: { isForeman },
+  });
+  revalidatePath(`/admin/sites/${siteId}`);
+  revalidatePath("/installer/timesheet");
 }
 
 export async function updateSiteStatusAction(siteId: string, status: "ACTIVE" | "ON_HOLD" | "COMPLETED") {
