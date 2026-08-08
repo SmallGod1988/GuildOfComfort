@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import ActionForm from "@/components/ActionForm";
-import { createTaskAction } from "@/app/actions/tasks";
+import TaskForm from "@/components/TaskForm";
 import { TASK_STATUS_LABEL, TASK_STATUS_BADGE_CLASS } from "@/lib/labels";
 
 export default async function AdminSubProjectPage({
@@ -42,6 +41,7 @@ export default async function AdminSubProjectPage({
               <tr>
                 <th>Задача</th>
                 <th>Операция</th>
+                <th>Объём</th>
                 <th>Статус</th>
                 <th>Монтажник</th>
               </tr>
@@ -51,6 +51,15 @@ export default async function AdminSubProjectPage({
                 <tr key={task.id}>
                   <td>{task.title}</td>
                   <td>{task.operation.name}</td>
+                  <td>
+                    {task.volume.toString()} {task.operation.unit}
+                    {task.operation.laborNorm && (
+                      <div className="hint">
+                        {(Number(task.operation.laborNorm) * Number(task.volume)).toFixed(2)} чел.-ч
+                        по норме
+                      </div>
+                    )}
+                  </td>
                   <td>
                     <span className={`badge ${TASK_STATUS_BADGE_CLASS[task.status]}`}>
                       {TASK_STATUS_LABEL[task.status]}
@@ -72,30 +81,15 @@ export default async function AdminSubProjectPage({
             <Link href="/admin/operations">справочнике операций</Link>.
           </p>
         ) : (
-          <ActionForm action={createTaskAction} submitLabel="Создать задачу">
-            <input type="hidden" name="subProjectId" value={subProject.id} />
-            <div className="field">
-              <label htmlFor="operationId">Операция</label>
-              <select id="operationId" name="operationId" required defaultValue="">
-                <option value="" disabled>
-                  Выберите операцию
-                </option>
-                {operations.map((op) => (
-                  <option key={op.id} value={op.id}>
-                    {op.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="title">Название задачи</label>
-              <input id="title" name="title" required />
-            </div>
-            <div className="field">
-              <label htmlFor="description">Описание (необязательно)</label>
-              <textarea id="description" name="description" />
-            </div>
-          </ActionForm>
+          <TaskForm
+            subProjectId={subProject.id}
+            operations={operations.map((op) => ({
+              id: op.id,
+              name: op.name,
+              unit: op.unit,
+              laborNorm: op.laborNorm?.toString() ?? null,
+            }))}
+          />
         )}
       </div>
     </>

@@ -129,6 +129,12 @@ model Operation {
   description String?
   category    String?
   tools       String[] @default([])
+  // Единица измерения РАБОТ (м, м², шт, компл.) — не путать с Material.unit,
+  // где единица самого материала. Нормы техкарты задаются на одну такую
+  // единицу, а фактический расход считается умножением на объём задачи.
+  unit        String   @default("компл.")
+  // Норма трудозатрат, чел.-ч на единицу работ. Необязательна.
+  laborNorm   Decimal? @db.Decimal(10, 3)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -138,7 +144,9 @@ model Operation {
   @@map("operations")
 }
 
-// Технологическая карта операции: сколько какого материала расходуется.
+// Технологическая карта операции: норма расхода материала НА ОДНУ ЕДИНИЦУ
+// работ операции (Operation.unit). Плановый расход по задаче —
+// quantity × Task.volume.
 model TechCardMaterial {
   id          String    @id @default(cuid())
   operationId String
@@ -160,6 +168,9 @@ model Task {
   operation    Operation  @relation(fields: [operationId], references: [id])
   title        String
   description  String?
+  // Объём работ в единицах операции (Operation.unit). По умолчанию 1 —
+  // так задачи, созданные до введения нормирования, ведут себя как прежде.
+  volume       Decimal    @default(1) @db.Decimal(12, 3)
   status       TaskStatus @default(FREE)
 
   installerId String?

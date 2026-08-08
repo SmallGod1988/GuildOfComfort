@@ -14,7 +14,9 @@ export default async function AdminOperationsPage() {
       <h1>Справочник операций</h1>
       <p className="hint">
         Каждая задача монтажника базируется на операции из этого справочника.
-        У операции есть технологическая карта: инструменты и материалы.
+        У операции есть технологическая карта: инструменты и нормы расхода
+        материалов на одну единицу работ. Фактический расход по задаче
+        считается как норма × объём работ.
       </p>
 
       <div className="section card">
@@ -23,6 +25,18 @@ export default async function AdminOperationsPage() {
           <div className="field">
             <label htmlFor="name">Название</label>
             <input id="name" name="name" required />
+          </div>
+          <div className="field">
+            <label htmlFor="unit">Единица измерения работ</label>
+            <input id="unit" name="unit" defaultValue="компл." placeholder="м / м² / шт / компл." required />
+            <p className="hint">
+              В этих единицах задаются нормы техкарты и объём каждой задачи.
+              Не путать с единицей самого материала.
+            </p>
+          </div>
+          <div className="field">
+            <label htmlFor="laborNorm">Норма трудозатрат, чел.-ч на единицу (необязательно)</label>
+            <input id="laborNorm" name="laborNorm" type="number" step="0.001" min="0.001" placeholder="0.4" />
           </div>
           <div className="field">
             <label htmlFor="category">Категория (необязательно)</label>
@@ -48,6 +62,8 @@ export default async function AdminOperationsPage() {
               <tr>
                 <th>Операция</th>
                 <th>Категория</th>
+                <th>Единица работ</th>
+                <th>Трудозатраты</th>
                 <th>Материалов в техкарте</th>
                 <th>Используется в задачах</th>
               </tr>
@@ -59,6 +75,10 @@ export default async function AdminOperationsPage() {
                     <Link href={`/admin/operations/${op.id}`}>{op.name}</Link>
                   </td>
                   <td>{op.category ?? "—"}</td>
+                  <td>{op.unit}</td>
+                  <td>
+                    {op.laborNorm ? `${op.laborNorm.toString()} чел.-ч / ${op.unit}` : "—"}
+                  </td>
                   <td>{op._count.techCardMaterials}</td>
                   <td>{op._count.tasks}</td>
                 </tr>

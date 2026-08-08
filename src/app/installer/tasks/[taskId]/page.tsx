@@ -37,7 +37,15 @@ export default async function InstallerTaskDetailPage({
       </p>
       <h1>{task.title}</h1>
       <p className="hint">
-        {task.subProject.name} · Операция: {task.operation.name}
+        {task.subProject.name} · Операция: {task.operation.name} · Объём:{" "}
+        {task.volume.toString()} {task.operation.unit}
+        {task.operation.laborNorm && (
+          <>
+            {" "}
+            · По норме:{" "}
+            {(Number(task.operation.laborNorm) * Number(task.volume)).toFixed(2)} чел.-ч
+          </>
+        )}
       </p>
       <p>
         <span className={`badge ${TASK_STATUS_BADGE_CLASS[task.status]}`}>
@@ -96,29 +104,36 @@ export default async function InstallerTaskDetailPage({
           <div className="section card">
             <h2>Завершить задачу</h2>
             <p className="hint">
-              Укажите фактически использованное количество материалов (подсказка — из
-              технологической карты). Оставьте 0, если материал не расходовался.
+              Количество подставлено по технологической карте на объём задачи —{" "}
+              {task.volume.toString()} {task.operation.unit}. Укажите фактический
+              расход, если он отличается. Оставьте 0, если материал не расходовался.
             </p>
             <ActionForm action={finishTaskAction.bind(null, task.id)} submitLabel="Завершить и отправить на проверку">
               {task.operation.techCardMaterials.length === 0 ? (
                 <p className="empty">В техкарте операции материалы не заданы.</p>
               ) : (
-                task.operation.techCardMaterials.map((tcm) => (
-                  <div className="field" key={tcm.id}>
-                    <label htmlFor={`qty-${tcm.id}`}>
-                      {tcm.material.name} ({tcm.material.unit}) — по техкарте: {tcm.quantity.toString()}
-                    </label>
-                    <input type="hidden" name="materialId" value={tcm.materialId} />
-                    <input
-                      id={`qty-${tcm.id}`}
-                      name="quantity"
-                      type="number"
-                      step="0.001"
-                      min="0"
-                      defaultValue={tcm.quantity.toString()}
-                    />
-                  </div>
-                ))
+                task.operation.techCardMaterials.map((tcm) => {
+                  // Плановый расход: норма на единицу × объём работ задачи.
+                  const planned = Number(tcm.quantity) * Number(task.volume);
+                  return (
+                    <div className="field" key={tcm.id}>
+                      <label htmlFor={`qty-${tcm.id}`}>
+                        {tcm.material.name} ({tcm.material.unit}) — по норме{" "}
+                        {tcm.quantity.toString()} на 1 {task.operation.unit}, итого{" "}
+                        {planned.toFixed(3).replace(/\.?0+$/, "")}
+                      </label>
+                      <input type="hidden" name="materialId" value={tcm.materialId} />
+                      <input
+                        id={`qty-${tcm.id}`}
+                        name="quantity"
+                        type="number"
+                        step="0.001"
+                        min="0"
+                        defaultValue={planned.toFixed(3).replace(/\.?0+$/, "")}
+                      />
+                    </div>
+                  );
+                })
               )}
             </ActionForm>
           </div>

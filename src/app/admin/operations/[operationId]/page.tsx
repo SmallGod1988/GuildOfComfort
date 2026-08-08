@@ -25,7 +25,13 @@ export default async function AdminOperationDetailPage({
         <Link href="/admin/operations">&larr; Справочник операций</Link>
       </p>
       <h1>{operation.name}</h1>
-      {operation.category && <p className="hint">Категория: {operation.category}</p>}
+      <p className="hint">
+        {operation.category && <>Категория: {operation.category} · </>}
+        Единица измерения работ: {operation.unit}
+        {operation.laborNorm && (
+          <> · Трудозатраты: {operation.laborNorm.toString()} чел.-ч на 1 {operation.unit}</>
+        )}
+      </p>
       {operation.description && <p>{operation.description}</p>}
 
       <div className="section card">
@@ -43,6 +49,10 @@ export default async function AdminOperationDetailPage({
 
       <div className="section card">
         <h2>Технологическая карта: материалы</h2>
+        <p className="hint">
+          Нормы задаются на одну единицу работ ({operation.unit}). Расход по
+          задаче считается автоматически: норма × объём работ задачи.
+        </p>
         {operation.techCardMaterials.length === 0 ? (
           <p className="empty">Материалы пока не заданы.</p>
         ) : (
@@ -50,7 +60,7 @@ export default async function AdminOperationDetailPage({
             <thead>
               <tr>
                 <th>Материал</th>
-                <th>Количество на операцию</th>
+                <th>Норма на 1 {operation.unit}</th>
                 <th></th>
               </tr>
             </thead>
@@ -92,7 +102,7 @@ export default async function AdminOperationDetailPage({
               </select>
             </div>
             <div className="field">
-              <label htmlFor="quantity">Количество на операцию</label>
+              <label htmlFor="quantity">Норма на 1 {operation.unit}</label>
               <input id="quantity" name="quantity" type="number" step="0.001" min="0.001" required />
             </div>
           </ActionForm>

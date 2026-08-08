@@ -12,6 +12,8 @@ const createOperationSchema = z.object({
   description: z.string().trim().optional(),
   category: z.string().trim().optional(),
   tools: z.string().trim().optional(),
+  unit: z.string().trim().min(1, "Укажите единицу измерения работ"),
+  laborNorm: z.coerce.number().positive("Норма трудозатрат должна быть больше нуля").optional(),
 });
 
 export async function createOperationAction(
@@ -24,6 +26,8 @@ export async function createOperationAction(
     description: formData.get("description") || undefined,
     category: formData.get("category") || undefined,
     tools: formData.get("tools") || undefined,
+    unit: formData.get("unit"),
+    laborNorm: formData.get("laborNorm") || undefined,
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Некорректные данные" };
@@ -37,6 +41,8 @@ export async function createOperationAction(
       description: parsed.data.description,
       category: parsed.data.category,
       tools,
+      unit: parsed.data.unit,
+      laborNorm: parsed.data.laborNorm,
     },
   });
   revalidatePath("/admin/operations");

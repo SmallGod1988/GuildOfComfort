@@ -673,7 +673,7 @@ erDiagram
         <article class="ent" id="t-tasks">
           <header>
             <h3>tasks</h3><span class="model">модель Task</span>
-            <p class="purpose">Конкретная работа в подпроекте, основанная на операции из справочника. Техкарта этой операции определяет, какие материалы монтажник будет списывать при завершении.</p>
+            <p class="purpose">Конкретная работа в подпроекте, основанная на операции из справочника. Объём задачи вместе с техкартой операции определяет плановый расход материалов и нормативное время.</p>
           </header>
           <div class="table-wrap"><table>
             <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
@@ -683,6 +683,7 @@ erDiagram
               <tr><td class="col">operationId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i></td><td class="dflt">—</td><td>Операция из справочника</td></tr>
               <tr><td class="col">title</td><td class="typ">text</td><td class="flags"></td><td class="dflt">—</td><td>Название задачи</td></tr>
               <tr><td class="col">description</td><td class="typ">text</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Уточнения по месту</td></tr>
+              <tr><td class="col">volume</td><td class="typ">numeric(12,3)</td><td class="flags"></td><td class="dflt">1</td><td>Объём работ в единицах операции. Плановый расход материала — норма техкарты × объём. Значение 1 по умолчанию сохраняет поведение задач, созданных до введения нормирования</td></tr>
               <tr><td class="col">status</td><td class="typ">TaskStatus</td><td class="flags"></td><td class="dflt">'FREE'</td><td>Текущий статус</td></tr>
               <tr><td class="col">installerId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i> <i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Исполнитель. Пусто, пока задача свободна</td></tr>
               <tr><td class="col">assignedAt</td><td class="typ">timestamp</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Когда монтажник взял задачу</td></tr>
@@ -758,7 +759,7 @@ erDiagram
         <article class="ent" id="t-operations">
           <header>
             <h3>operations</h3><span class="model">модель Operation</span>
-            <p class="purpose">Типовая операция — единица работы, повторяющаяся на разных объектах. Ведётся администратором вручную.</p>
+            <p class="purpose">Типовая операция — единица работы, повторяющаяся на разных объектах. Задаёт единицу измерения работ и нормы: расхода материалов (через техкарту) и трудозатрат. Ведётся администратором вручную.</p>
           </header>
           <div class="table-wrap"><table>
             <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
@@ -768,6 +769,8 @@ erDiagram
               <tr><td class="col">description</td><td class="typ">text</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Описание порядка работ</td></tr>
               <tr><td class="col">category</td><td class="typ">text</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Направление: вентиляция, электрика и т. д.</td></tr>
               <tr><td class="col">tools</td><td class="typ">text[]</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">ARRAY[]::text[]</td><td>Список инструментов; вводится строкой через запятую</td></tr>
+              <tr><td class="col">unit</td><td class="typ">text</td><td class="flags"></td><td class="dflt">'компл.'</td><td>Единица измерения <b>работ</b>: м, м², шт, компл. В ней задаётся объём задачи и на неё рассчитаны нормы техкарты. Не путать с <code>materials.unit</code></td></tr>
+              <tr><td class="col">laborNorm</td><td class="typ">numeric(10,3)</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Норма трудозатрат, чел.-ч на единицу работ. Необязательна</td></tr>
               <tr><td class="col">createdAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">CURRENT_TIMESTAMP</td><td>Момент создания</td></tr>
               <tr><td class="col">updatedAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">—</td><td>Проставляет Prisma</td></tr>
             </tbody>
@@ -784,7 +787,7 @@ erDiagram
         <article class="ent" id="t-tech_card_materials">
           <header>
             <h3>tech_card_materials</h3><span class="model">модель TechCardMaterial</span>
-            <p class="purpose">Строка технологической карты: сколько материала уходит на одну операцию. Норма подставляется монтажнику по умолчанию при завершении задачи.</p>
+            <p class="purpose">Строка технологической карты: норма расхода материала <b>на одну единицу работ</b> операции (<code>operations.unit</code>). Плановый расход по задаче считается как норма × <code>tasks.volume</code> и подставляется монтажнику при завершении.</p>
           </header>
           <div class="table-wrap"><table>
             <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
@@ -792,7 +795,7 @@ erDiagram
               <tr><td class="col">id</td><td class="typ">text</td><td class="flags"><i class="tag pk">PK</i></td><td class="dflt">—</td><td>Идентификатор cuid</td></tr>
               <tr><td class="col">operationId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i> <i class="tag uq">UQ</i></td><td class="dflt">—</td><td>Операция. Уникальна в паре с materialId</td></tr>
               <tr><td class="col">materialId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i> <i class="tag uq">UQ</i></td><td class="dflt">—</td><td>Материал</td></tr>
-              <tr><td class="col">quantity</td><td class="typ">numeric(12,3)</td><td class="flags"></td><td class="dflt">—</td><td>Норма расхода, до трёх знаков после запятой</td></tr>
+              <tr><td class="col">quantity</td><td class="typ">numeric(12,3)</td><td class="flags"></td><td class="dflt">—</td><td>Норма расхода на одну единицу работ операции, до трёх знаков после запятой</td></tr>
             </tbody>
           </table></div>
           <div class="rel">

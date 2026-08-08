@@ -32,6 +32,7 @@ const createTaskSchema = z.object({
   operationId: z.string().min(1),
   title: z.string().trim().min(2, "Укажите название задачи"),
   description: z.string().trim().optional(),
+  volume: z.coerce.number().positive("Объём работ должен быть больше нуля"),
 });
 
 export async function createTaskAction(
@@ -44,6 +45,7 @@ export async function createTaskAction(
     operationId: formData.get("operationId"),
     title: formData.get("title"),
     description: formData.get("description") || undefined,
+    volume: formData.get("volume"),
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Некорректные данные" };
@@ -194,12 +196,24 @@ export async function finishTaskAction(
   if (!site?.warehouse) return { error: "На объекте не настроен склад" };
   const warehouseId = site.warehouse.id;
 
+  // Списывать можно только материалы из техкарты операции: форма приходит от
+  // клиента, поэтому её состав проверяется заново.
+  const techCard = await prisma.techCardMaterial.findMany({
+    where: { operationId: task.operationId },
+    select: { materialId: true },
+  });
+  const allowed = new Set(techCard.map((t) => t.materialId));
+
   const materialIds = formData.getAll("materialId").map(String);
   const quantities = formData.getAll("quantity").map(String);
   const usages: { materialId: string; quantity: Prisma.Decimal | number }[] = [];
   for (let i = 0; i < materialIds.length; i++) {
     const qty = Number(quantities[i]);
-    if (qty > 0) usages.push({ materialId: materialIds[i], quantity: qty });
+    if (!(qty > 0)) continue;
+    if (!allowed.has(materialIds[i])) {
+      return { error: "Материал не входит в техкарту операции" };
+    }
+    usages.push({ materialId: materialIds[i], quantity: qty });
   }
 
   try {
