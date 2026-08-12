@@ -563,3 +563,11 @@ th {
   font-size: 0.78rem;
   color: var(--ts-accent);
 }
+
+.danger-zone {
+  border: 2px solid var(--danger);
+}
+
+.danger-zone h2 {
+  color: var(--danger);
+}

@@ -6,6 +6,7 @@ import {
   verifySessionToken,
   type SessionPayload,
 } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import type { Role } from "@/generated/prisma/enums";
 
 export async function getSession(): Promise<SessionPayload | null> {
@@ -29,6 +30,14 @@ export function homeForRole(role: Role) {
 export async function requireSession(): Promise<SessionPayload> {
   const session = await getSession();
   if (!session) redirect("/login");
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { deactivatedAt: true },
+  });
+  if (!user) redirect("/logout");
+  if (user.deactivatedAt) redirect("/logout?reason=deactivated");
+
   return session;
 }
 

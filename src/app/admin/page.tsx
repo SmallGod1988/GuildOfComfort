@@ -13,7 +13,10 @@ export default async function AdminSitesPage() {
         subProjects: { include: { tasks: { select: { status: true } } } },
       },
     }),
-    prisma.user.findMany({ where: { role: "CUSTOMER" }, orderBy: { fullName: "asc" } }),
+    prisma.user.findMany({
+      where: { role: "CUSTOMER", deactivatedAt: null },
+      orderBy: { fullName: "asc" },
+    }),
   ]);
 
   return (

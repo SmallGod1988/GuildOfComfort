@@ -122,3 +122,11 @@ export async function updateSiteStatusAction(siteId: string, status: "ACTIVE" | 
   revalidatePath(`/admin/sites/${siteId}`);
   revalidatePath("/admin");
 }
+
+export async function deleteSiteAction(siteId: string) {
+  await requireRole("ADMIN");
+  await prisma.site.delete({ where: { id: siteId } });
+  revalidatePath("/admin");
+  revalidatePath("/admin/timesheet");
+  revalidatePath("/admin/finance");
+}

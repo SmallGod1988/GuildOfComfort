@@ -5,6 +5,7 @@ import ActionForm from "@/components/ActionForm";
 import {
   assignCustomerAction,
   assignInstallerAction,
+  deleteSiteAction,
   setForemanAction,
   unassignInstallerAction,
   updateSiteStatusAction,
@@ -34,9 +35,15 @@ export default async function AdminSiteDetailPage({
   if (!site) notFound();
 
   const [allInstallers, materials, customers] = await Promise.all([
-    prisma.user.findMany({ where: { role: "INSTALLER" }, orderBy: { fullName: "asc" } }),
+    prisma.user.findMany({
+      where: { role: "INSTALLER", deactivatedAt: null },
+      orderBy: { fullName: "asc" },
+    }),
     prisma.material.findMany({ orderBy: { name: "asc" } }),
-    prisma.user.findMany({ where: { role: "CUSTOMER" }, orderBy: { fullName: "asc" } }),
+    prisma.user.findMany({
+      where: { role: "CUSTOMER", deactivatedAt: null },
+      orderBy: { fullName: "asc" },
+    }),
   ]);
   const assignedIds = new Set(site.installers.map((i) => i.installerId));
   const availableInstallers = allInstallers.filter((i) => !assignedIds.has(i.id));
@@ -250,6 +257,21 @@ export default async function AdminSiteDetailPage({
             </ActionForm>
           )}
         </div>
+      </div>
+
+      <div className="section card danger-zone">
+        <h2>Удалить объект</h2>
+        <p className="hint">
+          Вместе с объектом исчезнут все его подпроекты, задачи, история
+          статусов и склад со всеми движениями материалов. Отменить это
+          нельзя. Часы в табеле и финансовые записи сохранятся, но потеряют
+          привязку к объекту.
+        </p>
+        <form action={deleteSiteAction.bind(null, site.id)}>
+          <button type="submit" className="danger">
+            Удалить объект «{site.name}»
+          </button>
+        </form>
       </div>
     </>
   );

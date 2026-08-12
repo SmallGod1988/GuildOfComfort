@@ -68,6 +68,9 @@ model User {
   // финансы: записи, которые этот пользователь (админ) создал
   financialRecordsCreated       FinancialRecord[] @relation("FinancialCreatedBy")
 
+  // null = работает, имеет дату = уволен (архив)
+  deactivatedAt DateTime?
+
   @@map("users")
 }
 

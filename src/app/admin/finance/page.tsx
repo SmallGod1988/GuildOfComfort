@@ -5,7 +5,10 @@ import { FINANCIAL_TYPE_LABEL } from "@/lib/labels";
 
 export default async function AdminFinancePage() {
   const [installers, records, sites] = await Promise.all([
-    prisma.user.findMany({ where: { role: "INSTALLER" }, orderBy: { fullName: "asc" } }),
+    prisma.user.findMany({
+      where: { role: "INSTALLER", deactivatedAt: null },
+      orderBy: { fullName: "asc" },
+    }),
     prisma.financialRecord.findMany({
       include: { participant: true, site: true },
       orderBy: { createdAt: "desc" },

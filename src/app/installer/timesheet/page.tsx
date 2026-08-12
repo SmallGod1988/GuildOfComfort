@@ -25,7 +25,11 @@ export default async function InstallerTimesheetPage({
   // Для каждого храним объекты, на которых право вносить за него действует.
   const crewLinks = foremanSiteIds.length
     ? await prisma.siteInstaller.findMany({
-        where: { siteId: { in: foremanSiteIds }, installerId: { not: session.userId } },
+        where: {
+          siteId: { in: foremanSiteIds },
+          installerId: { not: session.userId },
+          installer: { deactivatedAt: null },
+        },
         include: { installer: true },
       })
     : [];

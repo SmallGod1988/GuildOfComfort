@@ -38,6 +38,10 @@ export async function loginAction(
     return { error: "Неверный e-mail или пароль" };
   }
 
+  if (user.deactivatedAt) {
+    return { error: "Учётная запись отключена. Обратитесь к администратору." };
+  }
+
   const token = await createSessionToken({
     userId: user.id,
     role: user.role,
