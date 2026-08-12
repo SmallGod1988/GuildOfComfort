@@ -118,14 +118,23 @@
    больше не открывать (только `80`/`443`), но firewall-правило не
    мешает, если оставите.
 
-7. **Обновление после изменений в коде**:
+8. **Обновление после изменений в коде**:
    ```bash
-   git pull
+   cd /opt/guildofcomfort
+   git fetch origin claude/company-app-project-xxhilu
+   git checkout claude/company-app-project-xxhilu
+   git pull origin claude/company-app-project-xxhilu
    docker compose -f docker-compose.prod.yml up -d --build
    docker compose -f docker-compose.prod.yml run --rm migrate
+   docker compose -f docker-compose.prod.yml ps
    ```
+   
+   **Важно**: файл `.env` в `.gitignore` и не будет затронут `git pull`
+   — пароли администратора и БД останутся неизменными. Повторный запуск
+   `migrate` безопасен: сид создаёт администратора через `upsert`,
+   не перезаписывая существующий пароль.
 
-8. **Бэкапы БД** (важно — на VPS нет автоматических бэкапов из коробки):
+9. **Бэкапы БД** (важно — на VPS нет автоматических бэкапов из коробки):
    ```bash
    docker compose -f docker-compose.prod.yml exec db \
      pg_dump -U goc guild_of_comfort > backup-$(date +%F).sql
