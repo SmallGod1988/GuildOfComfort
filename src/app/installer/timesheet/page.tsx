@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
 import TimesheetForm, { type CrewOption, type SiteOption } from "@/components/TimesheetForm";
+import { deleteTimesheetEntryAction } from "@/app/actions/timesheet";
 
 export default async function InstallerTimesheetPage({
   searchParams,
@@ -98,6 +99,16 @@ export default async function InstallerTimesheetPage({
                   {e.note && <div className="ts-caption">{e.note}</div>}
                 </span>
                 <span className="ts-hours">{e.hours.toString()} ч</span>
+                <div className="btn-row">
+                  <a href={`/installer/timesheet/${e.id}/edit`} className="btn secondary">
+                    Редактировать
+                  </a>
+                  <form action={deleteTimesheetEntryAction.bind(null, e.id)}>
+                    <button type="submit" className="danger">
+                      Удалить
+                    </button>
+                  </form>
+                </div>
               </div>
             ))}
           </div>

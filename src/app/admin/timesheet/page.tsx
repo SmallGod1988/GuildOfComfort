@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { deleteTimesheetEntryAction } from "@/app/actions/timesheet";
 
 export default async function AdminTimesheetPage() {
   const entries = await prisma.timesheetEntry.findMany({
@@ -44,28 +45,43 @@ export default async function AdminTimesheetPage() {
       {entries.length === 0 ? (
         <p className="empty">Записей пока нет.</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Дата</th>
-              <th>Монтажник</th>
-              <th>Объект</th>
-              <th>Часы</th>
-              <th>Комментарий</th>
-            </tr>
-          </thead>
-          <tbody>
-            {entries.map((e) => (
-              <tr key={e.id}>
-                <td>{e.date.toLocaleDateString("ru-RU")}</td>
-                <td>{e.installer.fullName}</td>
-                <td>{e.site?.name ?? "—"}</td>
-                <td>{e.hours.toString()}</td>
-                <td>{e.note ?? "—"}</td>
+        <div className="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Дата</th>
+                <th>Монтажник</th>
+                <th>Объект</th>
+                <th>Часы</th>
+                <th>Комментарий</th>
+                <th>Действия</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {entries.map((e) => (
+                <tr key={e.id}>
+                  <td>{e.date.toLocaleDateString("ru-RU")}</td>
+                  <td>{e.installer.fullName}</td>
+                  <td>{e.site?.name ?? "—"}</td>
+                  <td>{e.hours.toString()}</td>
+                  <td>{e.note ?? "—"}</td>
+                  <td>
+                    <div className="btn-row">
+                      <a href={`/admin/timesheet/${e.id}/edit`} className="btn secondary">
+                        Редактировать
+                      </a>
+                      <form action={deleteTimesheetEntryAction.bind(null, e.id)}>
+                        <button type="submit" className="danger">
+                          Удалить
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </>
   );
