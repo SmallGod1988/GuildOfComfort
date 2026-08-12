@@ -42,9 +42,12 @@ services:
       AUTH_SECRET: ${AUTH_SECRET:?set a long random AUTH_SECRET in .env}
     ports:
       - "3000:3000"
+    volumes:
+      - goc_uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
   goc_pgdata_prod:
+  goc_uploads:

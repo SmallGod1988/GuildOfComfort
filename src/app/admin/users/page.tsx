@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import ActionForm from "@/components/ActionForm";
 import { deactivateUserAction, reactivateUserAction, deleteUserAction } from "@/app/actions/users";
 
 export default async function AdminUsersPage() {
