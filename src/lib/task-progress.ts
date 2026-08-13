@@ -2,11 +2,17 @@
  * Расчёт готовности по дереву задач.
  *
  * Готовность листа — доля выполненного объёма. Готовность узла — взвешенная
- * сумма готовностей детей. Вес берётся из `weight` (проценты, заданные в КП);
- * если он не проставлен — распределяется пропорционально плановому объёму,
- * а при нулевых объёмах — поровну.
+ * сумма готовностей детей.
  *
- * Ничего не хранится в БД: дерево одного объекта — десятки строк, пересчёт
+ * Вес соседей берётся по первому подходящему правилу:
+ *   1. `weight` — если проставлен у всех. Так задают этапы: навеска щита 15 %,
+ *      расключение 85 %.
+ *   2. `amount` — сумма позиции по КП. Это правило листа КП
+ *      (`=КП!F9/КП!$F$29`): дороже позиция — больше её вклад в готовность.
+ *   3. плановый объём;
+ *   4. поровну.
+ *
+ * Ничего не хранится в БД: дерево одного объекта — сотня строк, пересчёт
  * дешевле, чем поддержание денормализованного поля в согласованном виде.
  */
 
@@ -22,6 +28,10 @@ export type TaskNodeInput = {
   volume: unknown;
   volumeFact: unknown;
   weight: unknown;
+  /** Сумма позиции по КП. Не задана — вес считается по объёму. */
+  amount?: unknown;
+  /** Цена за единицу по КП — для заработанного на выполненном объёме. */
+  unitPrice?: unknown;
 };
 
 export type TaskNode<T extends TaskNodeInput> = {
@@ -33,6 +43,8 @@ export type TaskNode<T extends TaskNodeInput> = {
   progress: number;
   /** Доля этой строки в готовности родителя, 0..1. */
   share: number;
+  /** Доля этой строки в готовности всего объекта, 0..1. */
+  absShare: number;
   /** План и факт: у листа — свои, у контейнера — сумма по детям. */
   volumePlan: number;
   volumeFact: number;
@@ -50,25 +62,36 @@ function clamp01(n: number): number {
   return n;
 }
 
+function isSet(value: unknown): boolean {
+  return value !== null && value !== undefined;
+}
+
+/** Нормирует набор чисел в доли. null — если правило неприменимо. */
+function normalize(values: number[]): number[] | null {
+  const sum = values.reduce((a, b) => a + b, 0);
+  if (!(sum > 0)) return null;
+  return values.map((v) => v / sum);
+}
+
 /**
- * Доли соседей по правилам КП: явные веса, иначе плановый объём, иначе поровну.
+ * Доли соседей: явные веса → деньги КП → плановый объём → поровну.
  * Сумма долей всегда 1 (при непустом списке).
  */
 function sharesOf<T extends TaskNodeInput>(siblings: T[]): number[] {
   if (siblings.length === 0) return [];
 
-  const weights = siblings.map((t) => toNumber(t.weight));
-  const allWeighted = siblings.every((t) => t.weight !== null && t.weight !== undefined);
-  const weightSum = weights.reduce((a, b) => a + b, 0);
-  if (allWeighted && weightSum > 0) {
-    return weights.map((w) => w / weightSum);
+  if (siblings.every((t) => isSet(t.weight))) {
+    const byWeight = normalize(siblings.map((t) => toNumber(t.weight)));
+    if (byWeight) return byWeight;
   }
 
-  const volumes = siblings.map((t) => toNumber(t.volume));
-  const volumeSum = volumes.reduce((a, b) => a + b, 0);
-  if (volumeSum > 0) {
-    return volumes.map((v) => v / volumeSum);
+  if (siblings.every((t) => isSet(t.amount))) {
+    const byMoney = normalize(siblings.map((t) => toNumber(t.amount)));
+    if (byMoney) return byMoney;
   }
+
+  const byVolume = normalize(siblings.map((t) => toNumber(t.volume)));
+  if (byVolume) return byVolume;
 
   return siblings.map(() => 1 / siblings.length);
 }
@@ -96,17 +119,19 @@ export function buildTaskTree<T extends TaskNodeInput>(tasks: T[]): TaskNode<T>[
     });
   }
 
-  const build = (parentId: string | null, depth: number): TaskNode<T>[] => {
+  const build = (parentId: string | null, depth: number, parentShare: number): TaskNode<T>[] => {
     const siblings = byParent.get(parentId) ?? [];
     const shares = sharesOf(siblings);
 
     return siblings.map((task, i) => {
-      const children = build(task.id, depth + 1);
+      const absShare = parentShare * shares[i];
+      const children = build(task.id, depth + 1, absShare);
       const node: TaskNode<T> = {
         task,
         children,
         depth,
         share: shares[i],
+        absShare,
         progress: 0,
         volumePlan: toNumber(task.volume),
         volumeFact: toNumber(task.volumeFact),
@@ -133,7 +158,7 @@ export function buildTaskTree<T extends TaskNodeInput>(tasks: T[]): TaskNode<T>[
     });
   };
 
-  return build(null, 0);
+  return build(null, 0, 1);
 }
 
 /** Готовность по всему списку — то же правило, что и внутри узла. */

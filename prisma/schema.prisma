@@ -100,6 +100,7 @@ model Site {
   warehouse        Warehouse?
   timesheetEntries TimesheetEntry[]
   financialRecords FinancialRecord[]
+  workBlocks       WorkBlock[]
 
   @@map("sites")
 }
@@ -205,9 +206,26 @@ model Task {
   sortOrder Int     @default(0)
   isSection Boolean @default(false)
 
-  // Вес строки в готовности родителя, в процентах. Не задан — вес считается
-  // пропорционально плановому объёму среди соседей.
+  // Вес строки в готовности родителя, в процентах. Задаётся вручную только
+  // для этапов («навеска 15 % / расключение 85 %»). У позиций КП вес не
+  // проставляют: он считается из денег — см. amount.
   weight Decimal? @db.Decimal(7, 4)
+
+  // Цена за единицу по КП. По ней считается заработанное на гибкой задаче:
+  // закрыто 50 из 700 м × 120 ₽ = 6 000 ₽.
+  unitPrice Decimal? @db.Decimal(12, 2)
+
+  // Сумма позиции по КП. Вес позиции в готовности объекта = amount / ИТОГО,
+  // ровно как в листе КП. Хранится отдельно от volume × unitPrice, потому что
+  // в КП позиции сливают: подключение термоконтактов (800 ₽) входит в
+  // подключение вентиляторов, и сумма строки больше её же цены × объём.
+  amount Decimal? @db.Decimal(12, 2)
+
+  // Блок работ, в котором эта строка выдаётся монтажникам. Соседи по дереву
+  // могут лежать в разных блоках: навеска щита — в одном, расключение — в
+  // другом, потому что между ними должен пройти кабель.
+  blockId String?
+  block   WorkBlock? @relation(fields: [blockId], references: [id], onDelete: SetNull)
 
   // Единица измерения, когда операции нет («линия», «уст»). Иначе берётся
   // из Operation.unit.
@@ -240,7 +258,58 @@ model Task {
 
   @@index([parentId])
   @@index([subProjectId])
+  @@index([blockId])
   @@map("tasks")
+}
+
+// Блок работ — то, что выдаётся монтажникам как единица очерёдности.
+// Не совпадает с деревом задач: один блок может собирать несколько позиций КП
+// (приводы, сервоприводы, насосы — один блок), а одна позиция может делиться
+// между блоками по этапам (монтаж гильз — один блок, зачеканка — другой,
+// между ними прокладывают кабель).
+model WorkBlock {
+  id     String @id @default(cuid())
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  code String // «Б1»
+  name String
+  // Ссылка на КП для отчёта заказчику: «поз. 4, этап 1».
+  kpPositions String?
+  sortOrder   Int     @default(0)
+
+  // Доля готовности предшественников, при которой блок можно начинать.
+  // 1 = только после полного завершения; 0.6 — можно вести параллельно.
+  threshold Decimal @default(1) @db.Decimal(4, 3)
+
+  // Заполняется вручную: нет материалов, нет доступа, не готова стройка.
+  // Непустая причина делает блок заблокированным независимо от готовности
+  // предшественников и попадает в отчёт заказчику.
+  blockReason String?
+
+  // Формулировка для заказчика — без внутренней кухни.
+  customerNote String?
+
+  tasks        Task[]
+  predecessors WorkBlockDependency[] @relation("Dependent")
+  successors   WorkBlockDependency[] @relation("Predecessor")
+
+  @@unique([siteId, code])
+  @@index([siteId])
+  @@map("work_blocks")
+}
+
+// Ребро графа очерёдности: блок нельзя начинать, пока не готов предшественник.
+model WorkBlockDependency {
+  id            String    @id @default(cuid())
+  blockId       String
+  block         WorkBlock @relation("Dependent", fields: [blockId], references: [id], onDelete: Cascade)
+  predecessorId String
+  predecessor   WorkBlock @relation("Predecessor", fields: [predecessorId], references: [id], onDelete: Cascade)
+
+  @@unique([blockId, predecessorId])
+  @@index([predecessorId])
+  @@map("work_block_dependencies")
 }
 
 // История переходов статуса задачи (для пауз/блокировок обязательна причина).
