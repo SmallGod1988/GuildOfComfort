@@ -3,6 +3,7 @@ import TopBar from "@/components/TopBar";
 
 const LINKS = [
   { href: "/admin", label: "Объекты" },
+  { href: "/admin/import", label: "Загрузка КП" },
   { href: "/admin/operations", label: "Операции" },
   { href: "/admin/materials", label: "Материалы" },
   { href: "/admin/tasks/review", label: "Проверка задач" },
