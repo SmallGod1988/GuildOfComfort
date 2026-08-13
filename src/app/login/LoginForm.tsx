@@ -19,6 +19,9 @@ export default function LoginForm() {
       <div className="field">
         <label htmlFor="password">Пароль</label>
         <input id="password" name="password" type="password" required autoComplete="current-password" />
+        <Link href="/forgot-password" className="hint-link">
+          Забыли пароль?
+        </Link>
       </div>
       <button type="submit" disabled={pending}>
         {pending ? "Входим..." : "Войти"}

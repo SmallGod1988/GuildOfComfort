@@ -71,6 +71,15 @@ model User {
   // null = работает, имеет дату = уволен (архив)
   deactivatedAt DateTime?
 
+  // email verification
+  emailVerified DateTime?
+
+  // password reset tokens
+  passwordResetTokens PasswordResetToken[]
+
+  // email logs
+  emailLogs EmailLog[]
+
   @@map("users")
 }
 
@@ -299,4 +308,33 @@ model FinancialRecord {
   createdAt     DateTime            @default(now())
 
   @@map("financial_records")
+}
+
+// Password reset tokens
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([userId, tokenHash])
+  @@map("password_reset_tokens")
+}
+
+// Email logs for debugging and audit
+model EmailLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email     String
+  type      String   // "verification", "password_reset", "report", "payout", "message"
+  status    String   // "sent", "failed"
+  error     String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@map("email_logs")
 }

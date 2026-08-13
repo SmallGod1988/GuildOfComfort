@@ -13,6 +13,17 @@ import {
   verifyPassword,
 } from "@/lib/auth";
 import { homeForRole } from "@/lib/session";
+import {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+} from "@/lib/email-service";
+import {
+  generateVerificationToken,
+  generateResetToken,
+  verifyResetToken,
+  deleteResetToken,
+  deleteAllResetTokens,
+} from "@/lib/tokens";
 
 export type ActionState = { error?: string };
 
@@ -120,4 +131,132 @@ export async function logoutAction() {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE_NAME);
   redirect("/login");
+}
+
+const verifyEmailSchema = z.object({
+  token: z.string().min(1, "Недействительная ссылка"),
+});
+
+export async function verifyEmailAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const parsed = verifyEmailSchema.safeParse({
+    token: formData.get("token"),
+  });
+  if (!parsed.success) {
+    return { error: "Недействительная ссылка верификации" };
+  }
+
+  // Проверить токен в БД (в реальной системе это будет хеш-сравнение)
+  // На данный момент используем упрощённый вариант - сохраняем email в токене
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        emailVerified: null,
+      },
+    });
+
+    if (!user) {
+      return { error: "Пользователь не найден или email уже подтверждён" };
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerified: new Date() },
+    });
+
+    return {};
+  } catch (error) {
+    return { error: "Ошибка при проверке email" };
+  }
+}
+
+const requestPasswordResetSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Некорректный e-mail"),
+});
+
+export async function requestPasswordResetAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const parsed = requestPasswordResetSchema.safeParse({
+    email: formData.get("email"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Некорректные данные" };
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: parsed.data.email },
+  });
+
+  // Всегда возвращаем успех (безопасность: не раскрываем наличие email)
+  if (user && !user.deactivatedAt) {
+    try {
+      const token = await generateResetToken(user.id);
+      const resetUrl = `${process.env.NODE_ENV === "production" ? "https" : "http"}://${
+        process.env.VERCEL_URL || "localhost:3000"
+      }/reset-password?token=${token}`;
+
+      await sendPasswordResetEmail(user, resetUrl);
+    } catch (error) {
+      console.error("Failed to send password reset email:", error);
+    }
+  }
+
+  return {};
+}
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(1, "Недействительная ссылка"),
+  password: z.string().min(6, "Пароль должен быть не короче 6 символов"),
+});
+
+export async function resetPasswordAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const parsed = resetPasswordSchema.safeParse({
+    token: formData.get("token"),
+    password: formData.get("password"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Некорректные данные" };
+  }
+
+  try {
+    // Find the reset token in the database
+    const tokenHash = require("crypto").createHash("sha256").update(parsed.data.token).digest("hex");
+    const resetTokenRecord = await prisma.passwordResetToken.findFirst({
+      where: {
+        tokenHash,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!resetTokenRecord || !resetTokenRecord.user) {
+      return { error: "Ссылка для сброса пароля недействительна или истекла" };
+    }
+
+    // Update the user's password
+    const passwordHash = await hashPassword(parsed.data.password);
+    await prisma.user.update({
+      where: { id: resetTokenRecord.user.id },
+      data: { passwordHash },
+    });
+
+    // Delete all reset tokens for this user
+    await deleteAllResetTokens(resetTokenRecord.user.id);
+
+    redirect("/login");
+  } catch (error) {
+    console.error("Password reset error:", error);
+    return { error: "Ошибка при сбросе пароля" };
+  }
 }
