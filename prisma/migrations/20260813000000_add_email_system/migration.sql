@@ -1,6 +1,9 @@
 -- Email verification
 ALTER TABLE "users" ADD COLUMN "emailVerified" TIMESTAMP(3);
 
+-- Mark existing users as verified (they already have accounts and can use the system)
+UPDATE "users" SET "emailVerified" = NOW() WHERE "emailVerified" IS NULL;
+
 -- Password reset tokens
 CREATE TABLE "password_reset_tokens" (
   "id" TEXT NOT NULL PRIMARY KEY,
