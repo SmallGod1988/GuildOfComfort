@@ -50,10 +50,10 @@ export default async function AdminSubProjectPage({
               {subProject.tasks.map((task) => (
                 <tr key={task.id}>
                   <td>{task.title}</td>
-                  <td>{task.operation.name}</td>
+                  <td>{task.operation?.name ?? "—"}</td>
                   <td>
-                    {task.volume.toString()} {task.operation.unit}
-                    {task.operation.laborNorm && (
+                    {task.volume.toString()} {task.operation?.unit ?? task.unit ?? ""}
+                    {task.operation?.laborNorm && (
                       <div className="hint">
                         {(Number(task.operation.laborNorm) * Number(task.volume)).toFixed(2)} чел.-ч
                         по норме

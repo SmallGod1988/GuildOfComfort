@@ -197,11 +197,14 @@ export async function finishTaskAction(
   const warehouseId = site.warehouse.id;
 
   // Списывать можно только материалы из техкарты операции: форма приходит от
-  // клиента, поэтому её состав проверяется заново.
-  const techCard = await prisma.techCardMaterial.findMany({
-    where: { operationId: task.operationId },
-    select: { materialId: true },
-  });
+  // клиента, поэтому её состав проверяется заново. Без операции техкарты нет —
+  // списывать нечего.
+  const techCard = task.operationId
+    ? await prisma.techCardMaterial.findMany({
+        where: { operationId: task.operationId },
+        select: { materialId: true },
+      })
+    : [];
   const allowed = new Set(techCard.map((t) => t.materialId));
 
   const materialIds = formData.getAll("materialId").map(String);

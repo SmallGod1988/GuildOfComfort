@@ -67,7 +67,7 @@ export default async function InstallerSiteDetailPage({
                           task.title
                         )}
                       </td>
-                      <td>{task.operation.name}</td>
+                      <td>{task.operation?.name ?? "—"}</td>
                       <td>
                         <span className={`badge ${TASK_STATUS_BADGE_CLASS[task.status]}`}>
                           {TASK_STATUS_LABEL[task.status]}

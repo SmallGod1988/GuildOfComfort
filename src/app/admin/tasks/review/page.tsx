@@ -24,7 +24,8 @@ export default async function AdminTaskReviewPage() {
           <div key={task.id} className="card">
             <h2>{task.title}</h2>
             <p className="hint">
-              {task.subProject.site.name} · {task.subProject.name} · Операция: {task.operation.name}
+              {task.subProject.site.name} · {task.subProject.name}
+              {task.operation && ` · Операция: ${task.operation.name}`}
             </p>
             <p>Монтажник: {task.installer?.fullName ?? "—"}</p>
             {task.description && <p>{task.description}</p>}

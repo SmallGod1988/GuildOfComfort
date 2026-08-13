@@ -1,12 +1,12 @@
-import { randomBytes } from "crypto";
+import { createHash, randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
 
 const TOKEN_LENGTH = 32;
-const VERIFICATION_EXPIRES_IN = 7 * 24 * 60 * 60 * 1000; // 7 days
 const PASSWORD_RESET_EXPIRES_IN = 24 * 60 * 60 * 1000; // 24 hours
 
-function hashToken(token: string): string {
-  return require("crypto").createHash("sha256").update(token).digest("hex");
+/** В БД лежит только хеш: утёкшая таблица токенов не даёт войти. */
+export function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
 }
 
 export function generateToken(): string {

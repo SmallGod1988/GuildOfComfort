@@ -30,6 +30,11 @@ export default async function InstallerTaskDetailPage({
   });
   if (!task || task.installerId !== session.userId) notFound();
 
+  // Операции нет у задач-контейнеров: тогда нет ни техкарты, ни инструментов,
+  // а единица измерения берётся из самой задачи.
+  const operation = task.operation;
+  const unit = operation?.unit ?? task.unit ?? "";
+
   return (
     <>
       <p>
@@ -37,13 +42,14 @@ export default async function InstallerTaskDetailPage({
       </p>
       <h1>{task.title}</h1>
       <p className="hint">
-        {task.subProject.name} · Операция: {task.operation.name} · Объём:{" "}
-        {task.volume.toString()} {task.operation.unit}
-        {task.operation.laborNorm && (
+        {task.subProject.name}
+        {operation && ` · Операция: ${operation.name}`} · Объём:{" "}
+        {task.volume.toString()} {unit}
+        {operation?.laborNorm && (
           <>
             {" "}
             · По норме:{" "}
-            {(Number(task.operation.laborNorm) * Number(task.volume)).toFixed(2)} чел.-ч
+            {(Number(operation.laborNorm) * Number(task.volume)).toFixed(2)} чел.-ч
           </>
         )}
       </p>
@@ -54,11 +60,11 @@ export default async function InstallerTaskDetailPage({
       </p>
       {task.description && <p>{task.description}</p>}
 
-      {task.operation.tools.length > 0 && (
+      {operation && operation.tools.length > 0 && (
         <div className="section card">
           <h2>Инструменты</h2>
           <ul>
-            {task.operation.tools.map((tool) => (
+            {operation.tools.map((tool) => (
               <li key={tool}>{tool}</li>
             ))}
           </ul>
@@ -105,21 +111,21 @@ export default async function InstallerTaskDetailPage({
             <h2>Завершить задачу</h2>
             <p className="hint">
               Количество подставлено по технологической карте на объём задачи —{" "}
-              {task.volume.toString()} {task.operation.unit}. Укажите фактический
+              {task.volume.toString()} {unit}. Укажите фактический
               расход, если он отличается. Оставьте 0, если материал не расходовался.
             </p>
             <ActionForm action={finishTaskAction.bind(null, task.id)} submitLabel="Завершить и отправить на проверку">
-              {task.operation.techCardMaterials.length === 0 ? (
+              {!operation || operation.techCardMaterials.length === 0 ? (
                 <p className="empty">В техкарте операции материалы не заданы.</p>
               ) : (
-                task.operation.techCardMaterials.map((tcm) => {
+                operation.techCardMaterials.map((tcm) => {
                   // Плановый расход: норма на единицу × объём работ задачи.
                   const planned = Number(tcm.quantity) * Number(task.volume);
                   return (
                     <div className="field" key={tcm.id}>
                       <label htmlFor={`qty-${tcm.id}`}>
                         {tcm.material.name} ({tcm.material.unit}) — по норме{" "}
-                        {tcm.quantity.toString()} на 1 {task.operation.unit}, итого{" "}
+                        {tcm.quantity.toString()} на 1 {unit}, итого{" "}
                         {planned.toFixed(3).replace(/\.?0+$/, "")}
                       </label>
                       <input type="hidden" name="materialId" value={tcm.materialId} />

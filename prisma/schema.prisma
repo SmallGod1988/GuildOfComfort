@@ -59,6 +59,7 @@ model User {
   // как монтажник
   assignedSites         SiteInstaller[]
   assignedTasks         Task[]                @relation("AssignedInstaller")
+  reviewedTasks         Task[]                @relation("TaskReviewer")
   taskStatusEvents      TaskStatusEvent[]
   timesheetEntries      TimesheetEntry[]
   warehouseTransactions WarehouseTransaction[]
@@ -171,19 +172,53 @@ model TechCardMaterial {
   @@map("tech_card_materials")
 }
 
-// Задача: конкретная работа в рамках подпроекта, базируется на операции.
+// Задача: строка списка работ по объекту. Одна таблица держит всю иерархию
+// листа «КП»: раздел → задача → подзадача → под-подзадача (через parentId).
+//
+// Раздел (isSection) — только заголовок-группировка, без объёма и исполнителя.
+// Узел без детей — рабочая задача, её выполняет монтажник.
+// Узел с детьми — контейнер: его готовность собирается из детей по весам.
 model Task {
   id           String     @id @default(cuid())
   subProjectId String
   subProject   SubProject @relation(fields: [subProjectId], references: [id], onDelete: Cascade)
-  operationId  String
-  operation    Operation  @relation(fields: [operationId], references: [id])
+  // Операции нет у разделов и у контейнеров, работа которых лежит в детях.
+  operationId  String?
+  operation    Operation? @relation(fields: [operationId], references: [id])
   title        String
   description  String?
   // Объём работ в единицах операции (Operation.unit). По умолчанию 1 —
   // так задачи, созданные до введения нормирования, ведут себя как прежде.
   volume       Decimal    @default(1) @db.Decimal(12, 3)
+  // Фактически выполненный объём. Готовность листа = volumeFact / volume.
+  volumeFact   Decimal    @default(0) @db.Decimal(12, 3)
   status       TaskStatus @default(FREE)
+
+  // --- иерархия ---
+  parentId String?
+  parent   Task?   @relation("TaskTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children Task[]  @relation("TaskTree")
+
+  // Номер строки из КП («1», «1.1», «2.1.1»). Хранится явно, а не считается:
+  // в КП нумерация бывает с пропусками (после 8 идёт 10).
+  code      String?
+  sortOrder Int     @default(0)
+  isSection Boolean @default(false)
+
+  // Вес строки в готовности родителя, в процентах. Не задан — вес считается
+  // пропорционально плановому объёму среди соседей.
+  weight Decimal? @db.Decimal(7, 4)
+
+  // Единица измерения, когда операции нет («линия», «уст»). Иначе берётся
+  // из Operation.unit.
+  unit String?
+
+  // Система на объекте: «ПВ1», «ПВ2», «ПВ1 / ПВ2», «уточнить». Строка, а не
+  // enum: на каждом объекте свой набор систем.
+  system String?
+
+  // Гибкая задача: монтажник сам заводит подзадачи, фиксируя участок и объём.
+  isFlexible Boolean @default(false)
 
   installerId String?
   installer   User?   @relation("AssignedInstaller", fields: [installerId], references: [id])
@@ -193,12 +228,18 @@ model Task {
   completedAt DateTime?
   reviewedAt  DateTime?
 
+  // Контроль ОТК: кто принял работу.
+  reviewedById String?
+  reviewedBy   User?   @relation("TaskReviewer", fields: [reviewedById], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   statusEvents          TaskStatusEvent[]
   warehouseTransactions WarehouseTransaction[]
 
+  @@index([parentId])
+  @@index([subProjectId])
   @@map("tasks")
 }
 

@@ -13,17 +13,8 @@ import {
   verifyPassword,
 } from "@/lib/auth";
 import { homeForRole } from "@/lib/session";
-import {
-  sendVerificationEmail,
-  sendPasswordResetEmail,
-} from "@/lib/email-service";
-import {
-  generateVerificationToken,
-  generateResetToken,
-  verifyResetToken,
-  deleteResetToken,
-  deleteAllResetTokens,
-} from "@/lib/tokens";
+import { sendPasswordResetEmail } from "@/lib/email-service";
+import { generateResetToken, deleteAllResetTokens, hashToken } from "@/lib/tokens";
 
 export type ActionState = { error?: string };
 
@@ -133,44 +124,10 @@ export async function logoutAction() {
   redirect("/login");
 }
 
-const verifyEmailSchema = z.object({
-  token: z.string().min(1, "Недействительная ссылка"),
-});
-
-export async function verifyEmailAction(
-  _prevState: ActionState,
-  formData: FormData
-): Promise<ActionState> {
-  const parsed = verifyEmailSchema.safeParse({
-    token: formData.get("token"),
-  });
-  if (!parsed.success) {
-    return { error: "Недействительная ссылка верификации" };
-  }
-
-  // Проверить токен в БД (в реальной системе это будет хеш-сравнение)
-  // На данный момент используем упрощённый вариант - сохраняем email в токене
-  try {
-    const user = await prisma.user.findFirst({
-      where: {
-        emailVerified: null,
-      },
-    });
-
-    if (!user) {
-      return { error: "Пользователь не найден или email уже подтверждён" };
-    }
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { emailVerified: new Date() },
-    });
-
-    return {};
-  } catch (error) {
-    return { error: "Ошибка при проверке email" };
-  }
-}
+// Верификация e-mail при регистрации пока не реализована: под неё нужна
+// таблица токенов, как password_reset_tokens. Экшена нет намеренно —
+// предыдущая версия подтверждала первого попавшегося пользователя, не сверяя
+// токен, и была доступна прямым POST-запросом.
 
 const requestPasswordResetSchema = z.object({
   email: z.string().trim().toLowerCase().email("Некорректный e-mail"),
@@ -227,10 +184,9 @@ export async function resetPasswordAction(
 
   try {
     // Find the reset token in the database
-    const tokenHash = require("crypto").createHash("sha256").update(parsed.data.token).digest("hex");
     const resetTokenRecord = await prisma.passwordResetToken.findFirst({
       where: {
-        tokenHash,
+        tokenHash: hashToken(parsed.data.token),
         expiresAt: {
           gt: new Date(),
         },
