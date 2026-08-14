@@ -52,7 +52,9 @@ export async function persistWorkbook(
     site = existing;
   } else {
     site = await prisma.site.create({
-      data: { name: target.name, address: target.address },
+      // Склад заводится вместе с объектом, как в createSiteAction: без него
+      // монтажник не сможет завершить задачу — списание упрётся в его отсутствие.
+      data: { name: target.name, address: target.address, warehouse: { create: {} } },
       select: { id: true, name: true },
     });
   }
