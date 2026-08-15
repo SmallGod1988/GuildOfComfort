@@ -103,6 +103,16 @@ a:hover {
   overflow-wrap: anywhere;
 }
 
+/* Версия развёрнутой сборки. Служебная метка — не должна конкурировать
+   за внимание с именем и кнопкой выхода. */
+.topbar-version {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  opacity: 0.55;
+  white-space: nowrap;
+  flex: none;
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);

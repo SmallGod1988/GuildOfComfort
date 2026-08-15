@@ -30,6 +30,10 @@ export default function TopBar({
         <span>
           {fullName} · {ROLE_LABEL[role] ?? role}
         </span>
+        {/* Видно прямо на работающем сервере, какая версия там развёрнута. */}
+        <span className="topbar-version" title="Версия приложения">
+          v{process.env.APP_VERSION}
+        </span>
         <form action={logoutAction}>
           <button type="submit" className="secondary">
             Выйти
