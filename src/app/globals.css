@@ -103,14 +103,26 @@ a:hover {
   overflow-wrap: anywhere;
 }
 
-/* Версия развёрнутой сборки. Служебная метка — не должна конкурировать
-   за внимание с именем и кнопкой выхода. */
-.topbar-version {
+/* Версия развёрнутой сборки в углу экрана. Служебная метка: приглушена,
+   не перехватывает нажатия и не мешает формам на телефоне. Отступ снизу
+   учитывает панель браузера на айфоне. */
+.app-version {
+  position: fixed;
+  right: 10px;
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  z-index: 10;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.75rem;
-  opacity: 0.55;
+  font-size: 0.7rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  opacity: 0.5;
+  background: var(--bg);
+  padding: 3px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+  user-select: none;
   white-space: nowrap;
-  flex: none;
 }
 
 .card {
