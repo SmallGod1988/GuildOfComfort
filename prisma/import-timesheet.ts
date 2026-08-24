@@ -18,7 +18,7 @@
  */
 
 import "dotenv/config";
-import { readFileSync } from "fs";
+import { readFileSync, statSync } from "fs";
 import { createHash, randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "../src/generated/prisma/client";
@@ -60,7 +60,42 @@ function parseHours(raw: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/**
+ * Проверяет, что по пути лежит непустой файл.
+ *
+ * Отдельная проверка нужна из-за Docker: при `-v /host/file:/app/file`, если
+ * файла на хосте нет, Docker создаёт вместо него пустой КАТАЛОГ и монтирует
+ * его. Дальше readFileSync падает с EISDIR, и по стектрейсу непонятно, что
+ * на самом деле забыли положить файл.
+ */
+function assertReadableFile(path: string): void {
+  let stat;
+  try {
+    stat = statSync(path);
+  } catch {
+    console.error(`Файл не найден: ${path}`);
+    console.error("Положите табель по этому пути и запустите снова.");
+    process.exit(1);
+  }
+
+  if (stat.isDirectory()) {
+    console.error(`По пути ${path} лежит каталог, а не файл.`);
+    console.error("");
+    console.error("Так бывает, когда файл монтируют в контейнер через -v, а на");
+    console.error("хосте его нет: Docker создаёт вместо него пустой каталог.");
+    console.error("Проверьте, что файл существует и не пуст, затем повторите.");
+    process.exit(1);
+  }
+
+  if (stat.size === 0) {
+    console.error(`Файл пуст: ${path}`);
+    process.exit(1);
+  }
+}
+
 function parseFile(path: string): { rows: Row[]; skipped: string[] } {
+  assertReadableFile(path);
+
   const rows: Row[] = [];
   const skipped: string[] = [];
 
