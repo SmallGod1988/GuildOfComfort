@@ -93,6 +93,47 @@ function assertReadableFile(path: string): void {
   }
 }
 
+/**
+ * Таблица соответствий: как имя из табеля называется в приложении.
+ *
+ * Нужна, потому что в табеле люди записаны по фамилии («Ценнер»), а в
+ * приложении заведены полностью («Виктор Ценнер»); то же с объектами
+ * («НПО ПОИСК 208 Аов» против «АовПоиск208»). Без соответствия импорт
+ * создал бы рядом второго человека и второй объект, и часы разъехались бы
+ * по двум карточкам.
+ *
+ * Формат строки: вид TAB какВТабеле TAB какВПриложении
+ * где вид — «человек» или «объект». Пустые строки и строки с # пропускаются.
+ */
+type NameMap = { person: Map<string, string>; site: Map<string, string> };
+
+function parseMap(path: string | null): NameMap {
+  const map: NameMap = { person: new Map(), site: new Map() };
+  if (!path) return map;
+
+  assertReadableFile(path);
+  readFileSync(path, "utf8")
+    .split(/\r?\n/)
+    .forEach((raw, i) => {
+      const line = raw.trim();
+      if (!line || line.startsWith("#")) return;
+
+      const [kind, from, to] = raw.split("\t").map((s) => s?.trim() ?? "");
+      if (!from || !to) {
+        console.error(`Соответствия, строка ${i + 1}: нужно три поля через табуляцию.`);
+        process.exit(1);
+      }
+      if (kind === "человек" || kind === "person") map.person.set(from, to);
+      else if (kind === "объект" || kind === "site") map.site.set(from, to);
+      else {
+        console.error(`Соответствия, строка ${i + 1}: вид «${kind}» — ожидается «человек» или «объект».`);
+        process.exit(1);
+      }
+    });
+
+  return map;
+}
+
 function parseFile(path: string): { rows: Row[]; skipped: string[] } {
   assertReadableFile(path);
 
@@ -152,7 +193,14 @@ function entryId(row: Row, occurrence: number): string {
 }
 
 async function main() {
-  const path = process.argv[2] ?? "prisma/data/timesheet-2026-07-08.tsv";
+  const args = process.argv.slice(2);
+  const dryRun = args.includes("--dry-run");
+  const mapIndex = args.indexOf("--map");
+  const mapPath = mapIndex >= 0 ? args[mapIndex + 1] : null;
+  const path =
+    args.find((a, i) => !a.startsWith("--") && i !== mapIndex + 1) ??
+    "prisma/data/timesheet-2026-07-08.tsv";
+
   const { rows, skipped } = parseFile(path);
 
   if (rows.length === 0) {
@@ -160,18 +208,65 @@ async function main() {
     process.exit(1);
   }
 
+  const nameMap = parseMap(mapPath);
+
   // ── люди ──
   const people = [...new Set(rows.map((r) => r.person))].sort();
   const created: string[] = [];
+  const matched: string[] = [];
+  const hints: string[] = [];
   const userIdByName = new Map<string, string>();
 
+  const allInstallers = await prisma.user.findMany({
+    where: { role: "INSTALLER" },
+    select: { id: true, fullName: true, email: true },
+  });
+
   for (const person of people) {
-    const email = `${slug(person)}@guild.local`;
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
-      userIdByName.set(person, existing.id);
+    const target = nameMap.person.get(person) ?? person;
+
+    const byName = allInstallers.find((u) => u.fullName === target);
+    if (byName) {
+      userIdByName.set(person, byName.id);
+      matched.push(`${person}${target !== person ? ` → ${target}` : ""}`);
       continue;
     }
+
+    // Соответствие задано, но такого человека в приложении нет — это опечатка
+    // в таблице соответствий, а не повод завести ещё одного.
+    if (nameMap.person.has(person)) {
+      console.error(`\nВ приложении нет монтажника «${target}» (соответствие для «${person}»).`);
+      console.error("Заведённые монтажники:");
+      allInstallers.forEach((u) => console.error(`  ${u.fullName}`));
+      process.exit(1);
+    }
+
+    const email = `${slug(person)}@guild.local`;
+    const byEmail = allInstallers.find((u) => u.email === email);
+    if (byEmail) {
+      userIdByName.set(person, byEmail.id);
+      matched.push(person);
+      continue;
+    }
+
+    // Фамилия из табеля встречается внутри уже заведённого имени — почти
+    // наверняка это тот же человек, просто записан полностью.
+    const looksLike = allInstallers.filter((u) =>
+      u.fullName.toLowerCase().includes(person.toLowerCase())
+    );
+    if (looksLike.length > 0) {
+      hints.push(
+        `человек\t${person}\t${looksLike[0].fullName}` +
+          (looksLike.length > 1 ? `   (ещё похожие: ${looksLike.slice(1).map((u) => u.fullName).join(", ")})` : "")
+      );
+    }
+
+    if (dryRun) {
+      userIdByName.set(person, "—");
+      created.push(`${person} → ${email}`);
+      continue;
+    }
+
     // Пароль случайный: эти учётные записи заведены под исторические часы,
     // входить под ними пока некому. Понадобится вход — сброс по почте.
     const user = await prisma.user.create({
@@ -191,12 +286,64 @@ async function main() {
   const siteIdByName = new Map<string, string>();
   const newSites: string[] = [];
 
+  const matchedSites: string[] = [];
+  const allSites = await prisma.site.findMany({ select: { id: true, name: true } });
+
+  /**
+   * Разбивает название на слова, чтобы «НПО ПОИСК 208 Аов» и «АовПоиск208»
+   * узнавались как один объект. Границы слов: пробелы, смена регистра
+   * и переход между буквами и цифрами.
+   */
+  const tokens = (s: string): Set<string> =>
+    new Set(
+      s
+        .replace(/([а-яa-z])([А-ЯA-Z])/g, "$1 $2")
+        .replace(/([^\d\s])(\d)/g, "$1 $2")
+        .replace(/(\d)([^\d\s])/g, "$1 $2")
+        .toLowerCase()
+        .split(/[^a-zа-я0-9]+/i)
+        .filter(Boolean)
+    );
+
+  /** Одно название целиком «влезает» в другое по словам. */
+  const looksSame = (a: string, b: string): boolean => {
+    const ta = tokens(a);
+    const tb = tokens(b);
+    const [small, big] = ta.size <= tb.size ? [ta, tb] : [tb, ta];
+    if (small.size === 0) return false;
+    return [...small].every((t) => big.has(t));
+  };
+
   for (const name of siteNames) {
-    const existing = await prisma.site.findFirst({ where: { name } });
+    const target = nameMap.site.get(name) ?? name;
+
+    const existing = allSites.find((s) => s.name === target);
     if (existing) {
       siteIdByName.set(name, existing.id);
+      matchedSites.push(`${name}${target !== name ? ` → ${target}` : ""}`);
       continue;
     }
+
+    if (nameMap.site.has(name)) {
+      console.error(`\nВ приложении нет объекта «${target}» (соответствие для «${name}»).`);
+      console.error("Заведённые объекты:");
+      allSites.forEach((s) => console.error(`  ${s.name}`));
+      process.exit(1);
+    }
+
+    // Совпало бы, если убрать пробелы и регистр — почти наверняка тот же
+    // объект, просто назван иначе.
+    const looksLike = allSites.filter((s) => looksSame(s.name, name));
+    if (looksLike.length > 0) {
+      hints.push(`объект\t${name}\t${looksLike[0].name}`);
+    }
+
+    if (dryRun) {
+      siteIdByName.set(name, "—");
+      newSites.push(name);
+      continue;
+    }
+
     const site = await prisma.site.create({
       // Адреса в табеле нет — заполняется позже вручную. Склад заводится
       // сразу, как и при обычном создании объекта.
@@ -226,6 +373,11 @@ async function main() {
     };
 
     const existing = await prisma.timesheetEntry.findUnique({ where: { id } });
+    if (dryRun) {
+      if (existing) updated++;
+      else inserted++;
+      continue;
+    }
     if (existing) {
       await prisma.timesheetEntry.update({ where: { id }, data });
       updated++;
@@ -237,17 +389,33 @@ async function main() {
 
   // ── отчёт ──
   console.log(`\nФайл: ${path}`);
+  if (mapPath) console.log(`Соответствия: ${mapPath}`);
+  if (dryRun) console.log("РЕЖИМ ПРЕДПРОСМОТРА — в базу ничего не записано");
   console.log(`Разобрано строк: ${rows.length}`);
-  console.log(`Записей добавлено: ${inserted}, обновлено: ${updated}`);
+  console.log(
+    dryRun
+      ? `Записей будет добавлено: ${inserted}, обновлено: ${updated}`
+      : `Записей добавлено: ${inserted}, обновлено: ${updated}`
+  );
 
   console.log(`\nЛюди (${people.length}):`);
-  if (created.length) created.forEach((c) => console.log(`  + ${c}`));
-  else console.log("  все уже были в базе");
+  matched.forEach((m) => console.log(`  = ${m}`));
+  created.forEach((c) => console.log(`  ${dryRun ? "+ будет заведён" : "+ заведён"}: ${c}`));
 
   console.log(`\nОбъекты (${siteNames.length}):`);
-  siteNames.forEach((n) =>
-    console.log(`  ${newSites.includes(n) ? "+" : " "} ${n}`)
-  );
+  matchedSites.forEach((m) => console.log(`  = ${m}`));
+  newSites.forEach((n) => console.log(`  ${dryRun ? "+ будет заведён" : "+ заведён"}: ${n}`));
+
+  // Самое важное в предпросмотре: имя из табеля похоже на уже заведённое,
+  // но не совпадает. Без соответствия появится двойник.
+  if (hints.length) {
+    console.log("\n─── похоже на двойников ───");
+    console.log("Эти имена не совпали с заведёнными, но выглядят как те же.");
+    console.log("Без таблицы соответствий появятся вторые карточки, и часы");
+    console.log("разъедутся. Сохраните строки ниже в файл и передайте его");
+    console.log("параметром --map:\n");
+    hints.forEach((h) => console.log(h));
+  }
 
   if (skipped.length) {
     console.log(`\nПропущено строк: ${skipped.length}`);
