@@ -1,0 +1,1080 @@
+<title>Гильдия Комфорта — схема базы данных</title>
+<style>
+  :root {
+    --ink:        hsl(212 28% 12%);
+    --ink-soft:   hsl(210 14% 38%);
+    --ink-faint:  hsl(208 12% 55%);
+    --paper:      hsl(204 22% 93%);
+    --surface:    hsl(0 0% 100%);
+    --surface-2:  hsl(204 20% 96%);
+    --border:     hsl(206 18% 82%);
+    --border-soft:hsl(206 20% 88%);
+    --accent:     hsl(29 80% 45%);
+
+    --pk:      hsl(29 80% 45%);
+    --pk-bg:   hsl(29 70% 94%);
+    --uq:      hsl(212 48% 40%);
+    --uq-bg:   hsl(212 60% 95%);
+    --fk:      hsl(158 40% 30%);
+    --fk-bg:   hsl(158 45% 94%);
+    --null:    hsl(206 12% 48%);
+    --null-bg: hsl(206 20% 95%);
+
+    --drawing-bg:  hsl(204 22% 96%);
+    --drawing-ink: hsl(212 28% 14%);
+
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink:        hsl(204 18% 90%);
+      --ink-soft:   hsl(206 12% 66%);
+      --ink-faint:  hsl(206 10% 52%);
+      --paper:      hsl(212 24% 10%);
+      --surface:    hsl(212 20% 14%);
+      --surface-2:  hsl(212 18% 17%);
+      --border:     hsl(210 14% 27%);
+      --border-soft:hsl(210 14% 22%);
+      --accent:     hsl(29 85% 58%);
+      --pk:      hsl(29 85% 62%);   --pk-bg:   hsl(29 45% 20%);
+      --uq:      hsl(210 62% 66%);  --uq-bg:   hsl(212 40% 22%);
+      --fk:      hsl(158 44% 56%);  --fk-bg:   hsl(158 30% 18%);
+      --null:    hsl(206 12% 62%);  --null-bg: hsl(206 12% 22%);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ink:        hsl(204 18% 90%);
+    --ink-soft:   hsl(206 12% 66%);
+    --ink-faint:  hsl(206 10% 52%);
+    --paper:      hsl(212 24% 10%);
+    --surface:    hsl(212 20% 14%);
+    --surface-2:  hsl(212 18% 17%);
+    --border:     hsl(210 14% 27%);
+    --border-soft:hsl(210 14% 22%);
+    --accent:     hsl(29 85% 58%);
+    --pk: hsl(29 85% 62%);  --pk-bg: hsl(29 45% 20%);
+    --uq: hsl(210 62% 66%); --uq-bg: hsl(212 40% 22%);
+    --fk: hsl(158 44% 56%); --fk-bg: hsl(158 30% 18%);
+    --null: hsl(206 12% 62%); --null-bg: hsl(206 12% 22%);
+  }
+
+  :root[data-theme="light"] {
+    --ink:        hsl(212 28% 12%);
+    --ink-soft:   hsl(210 14% 38%);
+    --ink-faint:  hsl(208 12% 55%);
+    --paper:      hsl(204 22% 93%);
+    --surface:    hsl(0 0% 100%);
+    --surface-2:  hsl(204 20% 96%);
+    --border:     hsl(206 18% 82%);
+    --border-soft:hsl(206 20% 88%);
+    --accent:     hsl(29 80% 45%);
+    --pk: hsl(29 80% 45%);  --pk-bg: hsl(29 70% 94%);
+    --uq: hsl(212 48% 40%); --uq-bg: hsl(212 60% 95%);
+    --fk: hsl(158 40% 30%); --fk-bg: hsl(158 45% 94%);
+    --null: hsl(206 12% 48%); --null-bg: hsl(206 20% 95%);
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  a { color: var(--accent); text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .shell {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2.75rem 1.5rem 5rem;
+    display: grid;
+    grid-template-columns: 244px minmax(0, 1fr);
+    gap: 3rem;
+    align-items: start;
+  }
+
+  /* ---------- оглавление ---------- */
+
+  .toc {
+    position: sticky;
+    top: 1.5rem;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    padding-right: 0.5rem;
+  }
+  .toc .toc-title {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.25rem;
+  }
+  .toc a { display: block; color: var(--ink-soft); text-decoration: none; padding: 0.12rem 0; }
+  .toc a:hover { color: var(--accent); }
+  .toc .sub { padding-left: 0.85rem; font-size: 0.78rem; font-family: var(--mono); color: var(--ink-faint); }
+  .toc .grp { padding-left: 0.2rem; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); margin-top: 0.4rem; }
+  .toc .gap { height: 0.45rem; }
+
+  /* ---------- документ ---------- */
+
+  .doc { min-width: 0; display: flex; flex-direction: column; gap: 3.25rem; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0;
+  }
+  h1 {
+    font-size: clamp(1.85rem, 4.6vw, 2.6rem);
+    line-height: 1.08;
+    letter-spacing: -0.022em;
+    font-weight: 700;
+    text-wrap: balance;
+    margin: 0.55rem 0 0;
+  }
+  .lede { max-width: 64ch; color: var(--ink-soft); font-size: 1.01rem; margin: 0.85rem 0 0; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 0 1.5rem;
+    font-family: var(--mono); font-size: 0.73rem; letter-spacing: 0.05em;
+    color: var(--ink-faint); border-top: 1px solid var(--border);
+    padding-top: 0.85rem; margin: 1.2rem 0 0; font-variant-numeric: tabular-nums;
+  }
+  .meta b { color: var(--ink); font-weight: 600; }
+
+  .sec { display: flex; flex-direction: column; gap: 1.1rem; scroll-margin-top: 1.25rem; }
+  .sec > h2 {
+    font-size: 1.32rem; letter-spacing: -0.014em; font-weight: 700; margin: 0;
+    padding-bottom: 0.55rem; border-bottom: 2px solid var(--ink);
+  }
+  .sec > p { margin: 0; max-width: 72ch; color: var(--ink-soft); font-size: 0.95rem; }
+
+  .note {
+    background: var(--surface); border-left: 3px solid var(--accent);
+    border-radius: 3px; padding: 0.9rem 1.05rem; font-size: 0.92rem; color: var(--ink-soft);
+  }
+  .note b { color: var(--ink); }
+
+  /* ---------- метки ---------- */
+
+  .tag {
+    display: inline-flex; align-items: center;
+    font-family: var(--mono); font-size: 0.63rem; letter-spacing: 0.06em;
+    padding: 0.1rem 0.4rem; border-radius: 3px; white-space: nowrap; font-weight: 600;
+  }
+  .tag.pk { background: var(--pk-bg); color: var(--pk); }
+  .tag.uq { background: var(--uq-bg); color: var(--uq); }
+  .tag.fk { background: var(--fk-bg); color: var(--fk); }
+  .tag.nl { background: var(--null-bg); color: var(--null); }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.3rem; align-items: center;
+    font-size: 0.8rem; color: var(--ink-soft);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+
+  /* ---------- чертёж (mermaid) ---------- */
+
+  .drawing {
+    position: relative; background: var(--drawing-bg); color: var(--drawing-ink);
+    border: 1px solid var(--border); border-radius: 2px;
+    padding: 2rem 1.25rem 1.5rem; overflow-x: auto;
+  }
+  .drawing::before, .drawing::after {
+    content: ""; position: absolute; width: 14px; height: 14px;
+    border-color: var(--accent); border-style: solid; opacity: 0.75;
+  }
+  .drawing::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+  .drawing::after  { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+  .drawing .stamp {
+    position: absolute; top: 8px; right: 14px; font-family: var(--mono);
+    font-size: 0.63rem; letter-spacing: 0.14em; text-transform: uppercase; color: hsl(210 14% 45%);
+  }
+  .drawing pre.mermaid { display: flex; justify-content: center; margin: 0; }
+
+  /* ---------- таблицы ---------- */
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 3px; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 0.86rem; }
+  th, td { text-align: left; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+  thead th {
+    font-family: var(--mono); font-size: 0.63rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 600; background: var(--surface-2);
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.col { font-family: var(--mono); font-size: 0.8rem; white-space: nowrap; font-weight: 600; }
+  td.typ { font-family: var(--mono); font-size: 0.76rem; color: var(--ink-soft); white-space: nowrap; }
+  td.flags { white-space: nowrap; width: 1%; }
+  td.flags .tag + .tag { margin-left: 0.25rem; }
+  td.dflt { font-family: var(--mono); font-size: 0.74rem; color: var(--ink-faint); white-space: nowrap; }
+  code { font-family: var(--mono); font-size: 0.87em; }
+
+  /* ---------- сущности ---------- */
+
+  .grp-head {
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent); font-weight: 700;
+    margin: 1.2rem 0 -0.3rem;
+  }
+
+  .ent {
+    background: var(--surface); border: 1px solid var(--border-soft); border-radius: 3px;
+    overflow: hidden; scroll-margin-top: 1.25rem;
+  }
+  .ent > header {
+    padding: 0.85rem 1.05rem; border-bottom: 1px solid var(--border-soft); background: var(--surface);
+    display: flex; align-items: baseline; gap: 0.7rem; flex-wrap: wrap;
+  }
+  .ent h3 { font-family: var(--mono); font-size: 0.95rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  .ent .model { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); }
+  .ent .purpose { flex-basis: 100%; margin: 0.15rem 0 0; font-size: 0.9rem; color: var(--ink-soft); max-width: 74ch; }
+  .ent .table-wrap { border: 0; border-radius: 0; border-bottom: 1px solid var(--border-soft); }
+  .ent .rel {
+    padding: 0.75rem 1.05rem 0.9rem; font-size: 0.85rem; color: var(--ink-soft);
+    display: flex; flex-direction: column; gap: 0.3rem; background: var(--surface-2);
+  }
+  .ent .rel .rel-title {
+    font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.13em;
+    text-transform: uppercase; color: var(--ink-faint); font-weight: 600;
+  }
+  .ent .rel ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.22rem; }
+  .ent .rel code { color: var(--ink); }
+
+  .ents { display: flex; flex-direction: column; gap: 1rem; }
+
+  .del {
+    font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.04em;
+    padding: 0.08rem 0.35rem; border-radius: 3px; font-weight: 600; white-space: nowrap;
+  }
+  .del.casc { background: hsl(0 60% 95%); color: hsl(0 55% 38%); }
+  .del.setn { background: var(--uq-bg); color: var(--uq); }
+  .del.rest { background: var(--null-bg); color: var(--null); }
+  @media (prefers-color-scheme: dark) {
+    .del.casc { background: hsl(0 40% 22%); color: hsl(0 70% 72%); }
+  }
+  :root[data-theme="dark"] .del.casc { background: hsl(0 40% 22%); color: hsl(0 70% 72%); }
+  :root[data-theme="light"] .del.casc { background: hsl(0 60% 95%); color: hsl(0 55% 38%); }
+
+  footer {
+    border-top: 1px solid var(--border); padding-top: 1.2rem;
+    font-family: var(--mono); font-size: 0.71rem; letter-spacing: 0.04em;
+    color: var(--ink-faint); display: flex; flex-direction: column; gap: 0.3rem;
+  }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: minmax(0, 1fr); gap: 2rem; padding: 2rem 1rem 3.5rem; }
+    .toc {
+      position: static; max-height: none; overflow: visible;
+      background: var(--surface); border: 1px solid var(--border-soft);
+      border-radius: 3px; padding: 0.9rem 1rem;
+    }
+    .toc .sub { display: none; }
+  }
+</style>
+
+<div class="shell">
+
+  <nav class="toc">
+    <div class="toc-title">Содержание</div>
+    <a href="#obzor">Обзор</a>
+    <a href="#er">ER-диаграмма</a>
+    <a href="#enums">Перечисления</a>
+    <a href="#entities">Сущности</a>
+    <div class="grp">Люди и доступ</div>
+    <a class="sub" href="#t-users">users</a>
+    <div class="grp">Объекты и работы</div>
+    <a class="sub" href="#t-sites">sites</a>
+    <a class="sub" href="#t-site_installers">site_installers</a>
+    <a class="sub" href="#t-sub_projects">sub_projects</a>
+    <a class="sub" href="#t-tasks">tasks</a>
+    <a class="sub" href="#t-task_status_events">task_status_events</a>
+    <div class="grp">Справочники</div>
+    <a class="sub" href="#t-materials">materials</a>
+    <a class="sub" href="#t-operations">operations</a>
+    <a class="sub" href="#t-tech_card_materials">tech_card_materials</a>
+    <div class="grp">Склад</div>
+    <a class="sub" href="#t-warehouses">warehouses</a>
+    <a class="sub" href="#t-warehouse_stock">warehouse_stock</a>
+    <a class="sub" href="#t-warehouse_transactions">warehouse_transactions</a>
+    <div class="grp">Учёт</div>
+    <a class="sub" href="#t-timesheet_entries">timesheet_entries</a>
+    <a class="sub" href="#t-financial_records">financial_records</a>
+    <div class="gap"></div>
+    <a href="#delete">Правила удаления</a>
+    <a href="#notes">Замечания по схеме</a>
+  </nav>
+
+  <main class="doc">
+
+    <header>
+      <p class="eyebrow">Гильдия Комфорта · техническая документация</p>
+      <h1>Схема базы данных</h1>
+      <p class="lede">
+        Описание сущностей и их атрибутов: типы, обязательность, значения по
+        умолчанию, ключи, связи и правила удаления. Данные сняты с
+        <code>prisma/schema.prisma</code> и с рабочей базы через
+        <code>information_schema</code>, поэтому типы точные, а не приблизительные.
+      </p>
+      <p class="meta">
+        <span><b>14</b> таблиц</span>
+        <span><b>5</b> перечислений</span>
+        <span><b>23</b> внешних ключа</span>
+        <span><b>5</b> уникальных ограничений</span>
+        <span>PostgreSQL <b>16</b></span>
+      </p>
+    </header>
+
+    <!-- ============ ОБЗОР ============ -->
+    <section class="sec" id="obzor">
+      <h2>Обзор</h2>
+      <p>
+        Четырнадцать таблиц делятся на пять смысловых групп. Ядро системы —
+        цепочка «объект → подпроект → задача»; всё остальное либо питает её
+        справочными данными, либо фиксирует последствия выполнения работ.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Группа</th><th>Таблицы</th><th>Назначение</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>Люди и доступ</b></td>
+              <td><code>users</code></td>
+              <td>Единая таблица для всех трёх ролей — администратора, монтажника и заказчика</td>
+            </tr>
+            <tr>
+              <td><b>Объекты и работы</b></td>
+              <td><code>sites</code>, <code>site_installers</code>, <code>sub_projects</code>, <code>tasks</code>, <code>task_status_events</code></td>
+              <td>Иерархия работ и полная история переходов статусов задач</td>
+            </tr>
+            <tr>
+              <td><b>Справочники</b></td>
+              <td><code>materials</code>, <code>operations</code>, <code>tech_card_materials</code></td>
+              <td>Материалы, типовые операции и нормы расхода — технологические карты</td>
+            </tr>
+            <tr>
+              <td><b>Склад</b></td>
+              <td><code>warehouses</code>, <code>warehouse_stock</code>, <code>warehouse_transactions</code></td>
+              <td>По складу на объект: текущие остатки и журнал всех движений</td>
+            </tr>
+            <tr>
+              <td><b>Учёт</b></td>
+              <td><code>timesheet_entries</code>, <code>financial_records</code></td>
+              <td>Табель рабочего времени и приватные взаиморасчёты</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="legend">
+        <span><i class="tag pk">PK</i> первичный ключ</span>
+        <span><i class="tag uq">UQ</i> уникальность</span>
+        <span><i class="tag fk">FK</i> внешний ключ</span>
+        <span><i class="tag nl">NULL</i> может быть пустым</span>
+      </div>
+    </section>
+
+    <!-- ============ ER ============ -->
+    <section class="sec" id="er">
+      <h2>ER-диаграмма</h2>
+      <p>
+        Связи между таблицами с ключевыми атрибутами. Полное описание каждого
+        поля — в разделе «Сущности» ниже.
+      </p>
+      <div class="drawing">
+        <span class="stamp">Схема сущностей</span>
+<pre class="mermaid">
+%%{init: {"theme":"neutral"}}%%
+erDiagram
+    users {
+        text id PK
+        text email UK
+        Role role
+        text fullName
+    }
+    sites {
+        text id PK
+        text name
+        text customerId FK
+        SiteStatus status
+    }
+    site_installers {
+        text id PK
+        text siteId FK
+        text installerId FK
+        boolean isForeman
+    }
+    sub_projects {
+        text id PK
+        text siteId FK
+        text name
+    }
+    tasks {
+        text id PK
+        text subProjectId FK
+        text operationId FK
+        text installerId FK
+        TaskStatus status
+    }
+    task_status_events {
+        text id PK
+        text taskId FK
+        TaskStatus fromStatus
+        TaskStatus toStatus
+        text reason
+    }
+    operations {
+        text id PK
+        text name
+        text category
+        text_array tools
+    }
+    materials {
+        text id PK
+        text name
+        text unit
+    }
+    tech_card_materials {
+        text id PK
+        text operationId FK
+        text materialId FK
+        numeric quantity
+    }
+    warehouses {
+        text id PK
+        text siteId UK
+    }
+    warehouse_stock {
+        text id PK
+        text warehouseId FK
+        text materialId FK
+        numeric quantity
+    }
+    warehouse_transactions {
+        text id PK
+        text warehouseId FK
+        text materialId FK
+        WarehouseTxType type
+        numeric quantity
+        text taskId FK
+    }
+    timesheet_entries {
+        text id PK
+        text installerId FK
+        text siteId FK
+        date date
+        numeric hours
+    }
+    financial_records {
+        text id PK
+        text participantId FK
+        FinancialRecordType type
+        numeric amount
+    }
+
+    users ||--o{ sites : "заказчик"
+    users ||--o{ site_installers : "монтажник"
+    users ||--o{ tasks : "исполнитель"
+    users ||--o{ task_status_events : "автор"
+    users ||--o{ timesheet_entries : "монтажник"
+    users ||--o{ financial_records : "участник"
+    users ||--o{ warehouse_transactions : "автор"
+    sites ||--o{ site_installers : ""
+    sites ||--o{ sub_projects : ""
+    sites ||--|| warehouses : ""
+    sites ||--o{ timesheet_entries : ""
+    sites ||--o{ financial_records : ""
+    sub_projects ||--o{ tasks : ""
+    operations ||--o{ tasks : "основа"
+    operations ||--o{ tech_card_materials : "техкарта"
+    materials ||--o{ tech_card_materials : ""
+    materials ||--o{ warehouse_stock : ""
+    materials ||--o{ warehouse_transactions : ""
+    tasks ||--o{ task_status_events : "история"
+    tasks ||--o{ warehouse_transactions : "списание"
+    warehouses ||--o{ warehouse_stock : "остатки"
+    warehouses ||--o{ warehouse_transactions : "движения"
+</pre>
+      </div>
+    </section>
+
+    <!-- ============ ПЕРЕЧИСЛЕНИЯ ============ -->
+    <section class="sec" id="enums">
+      <h2>Перечисления</h2>
+      <p>
+        Пять типов PostgreSQL. Добавление значения в любой из них требует
+        миграции — свободного текста в этих полях быть не может.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Тип</th><th>Значение</th><th>Смысл</th><th>Где используется</th></tr></thead>
+          <tbody>
+            <tr><td class="col" rowspan="3"><code>Role</code></td><td class="typ">ADMIN</td><td>Администратор — руководитель работ</td><td class="typ" rowspan="3">users.role</td></tr>
+            <tr><td class="typ">INSTALLER</td><td>Монтажник — исполнитель на объекте</td></tr>
+            <tr><td class="typ">CUSTOMER</td><td>Заказчик — только просмотр своих объектов</td></tr>
+
+            <tr><td class="col" rowspan="3"><code>SiteStatus</code></td><td class="typ">ACTIVE</td><td>В работе</td><td class="typ" rowspan="3">sites.status</td></tr>
+            <tr><td class="typ">ON_HOLD</td><td>Приостановлен</td></tr>
+            <tr><td class="typ">COMPLETED</td><td>Завершён</td></tr>
+
+            <tr><td class="col" rowspan="7"><code>TaskStatus</code></td><td class="typ">FREE</td><td>Свободна — создана, не закреплена</td><td class="typ" rowspan="7">tasks.status,<br>task_status_events.fromStatus,<br>task_status_events.toStatus</td></tr>
+            <tr><td class="typ">ASSIGNED</td><td>Назначена — монтажник взял, но не начал</td></tr>
+            <tr><td class="typ">IN_PROGRESS</td><td>В работе</td></tr>
+            <tr><td class="typ">PAUSED</td><td>Пауза — причина обязательна</td></tr>
+            <tr><td class="typ">BLOCKED</td><td>Заблокирована внешней причиной — причина обязательна</td></tr>
+            <tr><td class="typ">IN_REVIEW</td><td>На проверке у администратора</td></tr>
+            <tr><td class="typ">DONE</td><td>Выполнена — конечный статус, выхода нет</td></tr>
+
+            <tr><td class="col" rowspan="2"><code>WarehouseTxType</code></td><td class="typ">IN</td><td>Приход на склад</td><td class="typ" rowspan="2">warehouse_transactions.type</td></tr>
+            <tr><td class="typ">OUT</td><td>Расход — списание при завершении задачи</td></tr>
+
+            <tr><td class="col" rowspan="2"><code>FinancialRecordType</code></td><td class="typ">ACCRUAL</td><td>Начисление — увеличивает долг перед монтажником</td><td class="typ" rowspan="2">financial_records.type</td></tr>
+            <tr><td class="typ">PAYOUT</td><td>Выплата — уменьшает долг</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ СУЩНОСТИ ============ -->
+    <section class="sec" id="entities">
+      <h2>Сущности</h2>
+      <p>
+        По карточке на таблицу: назначение, все колонки с типами и
+        значениями по умолчанию, ключи и связи. Пустое значение по умолчанию
+        означает, что колонку всегда заполняет приложение.
+      </p>
+
+      <div class="grp-head">Люди и доступ</div>
+      <div class="ents">
+
+        <article class="ent" id="t-users">
+          <header>
+            <h3>users</h3><span class="model">модель User</span>
+            <p class="purpose">Все пользователи системы в одной таблице — роль различает их поведение. Администратор создаётся только сид-скриптом; монтажники и заказчики регистрируются сами.</p>
+          </header>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
+            <tbody>
+              <tr><td class="col">id</td><td class="typ">text</td><td class="flags"><i class="tag pk">PK</i></td><td class="dflt">—</td><td>Идентификатор cuid, генерируется приложением</td></tr>
+              <tr><td class="col">email</td><td class="typ">text</td><td class="flags"><i class="tag uq">UQ</i></td><td class="dflt">—</td><td>Логин; приводится к нижнему регистру при регистрации</td></tr>
+              <tr><td class="col">passwordHash</td><td class="typ">text</td><td class="flags"></td><td class="dflt">—</td><td>bcrypt-хэш, стоимость 10. Открытый пароль не хранится</td></tr>
+              <tr><td class="col">role</td><td class="typ">Role</td><td class="flags"></td><td class="dflt">—</td><td>Определяет кабинет и права</td></tr>
+              <tr><td class="col">fullName</td><td class="typ">text</td><td class="flags"></td><td class="dflt">—</td><td>ФИО в списках и подписях</td></tr>
+              <tr><td class="col">phone</td><td class="typ">text</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Телефон, необязателен</td></tr>
+              <tr><td class="col">createdAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">CURRENT_TIMESTAMP</td><td>Момент регистрации</td></tr>
+              <tr><td class="col">updatedAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">—</td><td>Проставляет Prisma, не база (см. замечания)</td></tr>
+            </tbody>
+          </table></div>
+          <div class="rel">
+            <span class="rel-title">На эту таблицу ссылаются</span>
+            <ul>
+              <li><code>sites.customerId</code> — заказчик объекта <i class="del setn">SET NULL</i></li>
+              <li><code>site_installers.installerId</code>, <code>timesheet_entries.installerId</code>, <code>financial_records.participantId</code>, <code>financial_records.createdById</code>, <code>task_status_events.createdById</code>, <code>warehouse_transactions.createdById</code> <i class="del rest">RESTRICT</i></li>
+              <li><code>tasks.installerId</code> — исполнитель задачи <i class="del setn">SET NULL</i></li>
+            </ul>
+          </div>
+        </article>
+      </div>
+
+      <div class="grp-head">Объекты и работы</div>
+      <div class="ents">
+
+        <article class="ent" id="t-sites">
+          <header>
+            <h3>sites</h3><span class="model">модель Site</span>
+            <p class="purpose">Объект монтажа. Склад создаётся автоматически вместе с объектом, поэтому объекта без склада в системе не бывает.</p>
+          </header>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
+            <tbody>
+              <tr><td class="col">id</td><td class="typ">text</td><td class="flags"><i class="tag pk">PK</i></td><td class="dflt">—</td><td>Идентификатор cuid</td></tr>
+              <tr><td class="col">name</td><td class="typ">text</td><td class="flags"></td><td class="dflt">—</td><td>Название объекта</td></tr>
+              <tr><td class="col">address</td><td class="typ">text</td><td class="flags"></td><td class="dflt">—</td><td>Адрес</td></tr>
+              <tr><td class="col">customerId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i> <i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Заказчик. Пусто, если объект создан до его регистрации</td></tr>
+              <tr><td class="col">status</td><td class="typ">SiteStatus</td><td class="flags"></td><td class="dflt">'ACTIVE'</td><td>Переходы между статусами не ограничены</td></tr>
+              <tr><td class="col">createdAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">CURRENT_TIMESTAMP</td><td>Момент создания</td></tr>
+              <tr><td class="col">updatedAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">—</td><td>Проставляет Prisma</td></tr>
+            </tbody>
+          </table></div>
+          <div class="rel">
+            <span class="rel-title">Связи</span>
+            <ul>
+              <li>Ссылается: <code>customerId</code> → <code>users.id</code> <i class="del setn">SET NULL</i></li>
+              <li>Ссылаются на неё: <code>sub_projects</code>, <code>site_installers</code>, <code>warehouses</code> <i class="del casc">CASCADE</i></li>
+              <li>Ссылаются на неё: <code>timesheet_entries.siteId</code>, <code>financial_records.siteId</code> <i class="del setn">SET NULL</i></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="ent" id="t-site_installers">
+          <header>
+            <h3>site_installers</h3><span class="model">модель SiteInstaller</span>
+            <p class="purpose">Назначение монтажника на объект, связь многие-ко-многим. Здесь же живёт признак бригадира: право вести табель за бригаду привязано к объекту, а не к человеку.</p>
+          </header>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
+            <tbody>
+              <tr><td class="col">id</td><td class="typ">text</td><td class="flags"><i class="tag pk">PK</i></td><td class="dflt">—</td><td>Идентификатор cuid</td></tr>
+              <tr><td class="col">siteId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i> <i class="tag uq">UQ</i></td><td class="dflt">—</td><td>Объект. Уникален в паре с installerId</td></tr>
+              <tr><td class="col">installerId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i> <i class="tag uq">UQ</i></td><td class="dflt">—</td><td>Монтажник</td></tr>
+              <tr><td class="col">assignedAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">CURRENT_TIMESTAMP</td><td>Когда назначен</td></tr>
+              <tr><td class="col">isForeman</td><td class="typ">boolean</td><td class="flags"></td><td class="dflt">false</td><td>Бригадир на этом объекте: может вносить часы за монтажников этого же объекта</td></tr>
+            </tbody>
+          </table></div>
+          <div class="rel">
+            <span class="rel-title">Связи и ограничения</span>
+            <ul>
+              <li><code>siteId</code> → <code>sites.id</code> <i class="del casc">CASCADE</i> · <code>installerId</code> → <code>users.id</code> <i class="del rest">RESTRICT</i></li>
+              <li>Уникальная пара <code>(siteId, installerId)</code> — повторное назначение не создаёт дубля</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="ent" id="t-sub_projects">
+          <header>
+            <h3>sub_projects</h3><span class="model">модель SubProject</span>
+            <p class="purpose">Направление работ внутри объекта: вентиляция, электрика, автоматика, кондиционирование. Промежуточный уровень между объектом и задачами.</p>
+          </header>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
+            <tbody>
+              <tr><td class="col">id</td><td class="typ">text</td><td class="flags"><i class="tag pk">PK</i></td><td class="dflt">—</td><td>Идентификатор cuid</td></tr>
+              <tr><td class="col">siteId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i></td><td class="dflt">—</td><td>Объект-владелец</td></tr>
+              <tr><td class="col">name</td><td class="typ">text</td><td class="flags"></td><td class="dflt">—</td><td>Название направления</td></tr>
+              <tr><td class="col">createdAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">CURRENT_TIMESTAMP</td><td>Момент создания</td></tr>
+              <tr><td class="col">updatedAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">—</td><td>Проставляет Prisma</td></tr>
+            </tbody>
+          </table></div>
+          <div class="rel">
+            <span class="rel-title">Связи</span>
+            <ul>
+              <li><code>siteId</code> → <code>sites.id</code> <i class="del casc">CASCADE</i></li>
+              <li>Ссылается на неё <code>tasks.subProjectId</code> <i class="del casc">CASCADE</i></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="ent" id="t-tasks">
+          <header>
+            <h3>tasks</h3><span class="model">модель Task</span>
+            <p class="purpose">Конкретная работа в подпроекте, основанная на операции из справочника. Объём задачи вместе с техкартой операции определяет плановый расход материалов и нормативное время.</p>
+          </header>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
+            <tbody>
+              <tr><td class="col">id</td><td class="typ">text</td><td class="flags"><i class="tag pk">PK</i></td><td class="dflt">—</td><td>Идентификатор cuid</td></tr>
+              <tr><td class="col">subProjectId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i></td><td class="dflt">—</td><td>Подпроект-владелец</td></tr>
+              <tr><td class="col">operationId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i></td><td class="dflt">—</td><td>Операция из справочника</td></tr>
+              <tr><td class="col">title</td><td class="typ">text</td><td class="flags"></td><td class="dflt">—</td><td>Название задачи</td></tr>
+              <tr><td class="col">description</td><td class="typ">text</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Уточнения по месту</td></tr>
+              <tr><td class="col">volume</td><td class="typ">numeric(12,3)</td><td class="flags"></td><td class="dflt">1</td><td>Объём работ в единицах операции. Плановый расход материала — норма техкарты × объём. Значение 1 по умолчанию сохраняет поведение задач, созданных до введения нормирования</td></tr>
+              <tr><td class="col">status</td><td class="typ">TaskStatus</td><td class="flags"></td><td class="dflt">'FREE'</td><td>Текущий статус</td></tr>
+              <tr><td class="col">installerId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i> <i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Исполнитель. Пусто, пока задача свободна</td></tr>
+              <tr><td class="col">assignedAt</td><td class="typ">timestamp</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Когда монтажник взял задачу</td></tr>
+              <tr><td class="col">startedAt</td><td class="typ">timestamp</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Первый старт; при возобновлении не перезаписывается</td></tr>
+              <tr><td class="col">completedAt</td><td class="typ">timestamp</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Когда отправлена на проверку</td></tr>
+              <tr><td class="col">reviewedAt</td><td class="typ">timestamp</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Момент решения администратора — и приёмки, и возврата</td></tr>
+              <tr><td class="col">createdAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">CURRENT_TIMESTAMP</td><td>Момент постановки</td></tr>
+              <tr><td class="col">updatedAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">—</td><td>Проставляет Prisma</td></tr>
+            </tbody>
+          </table></div>
+          <div class="rel">
+            <span class="rel-title">Связи</span>
+            <ul>
+              <li><code>subProjectId</code> → <code>sub_projects.id</code> <i class="del casc">CASCADE</i></li>
+              <li><code>operationId</code> → <code>operations.id</code> <i class="del rest">RESTRICT</i> · <code>installerId</code> → <code>users.id</code> <i class="del setn">SET NULL</i></li>
+              <li>Ссылаются на неё: <code>task_status_events</code> <i class="del casc">CASCADE</i>, <code>warehouse_transactions.taskId</code> <i class="del setn">SET NULL</i></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="ent" id="t-task_status_events">
+          <header>
+            <h3>task_status_events</h3><span class="model">модель TaskStatusEvent</span>
+            <p class="purpose">Журнал переходов задачи. Пишется на каждый переход и никогда не изменяется — это источник правды по истории работ и по причинам простоя.</p>
+          </header>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
+            <tbody>
+              <tr><td class="col">id</td><td class="typ">text</td><td class="flags"><i class="tag pk">PK</i></td><td class="dflt">—</td><td>Идентификатор cuid</td></tr>
+              <tr><td class="col">taskId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i></td><td class="dflt">—</td><td>Задача</td></tr>
+              <tr><td class="col">fromStatus</td><td class="typ">TaskStatus</td><td class="flags"></td><td class="dflt">—</td><td>Статус до перехода</td></tr>
+              <tr><td class="col">toStatus</td><td class="typ">TaskStatus</td><td class="flags"></td><td class="dflt">—</td><td>Статус после перехода</td></tr>
+              <tr><td class="col">reason</td><td class="typ">text</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Обязательна на паузе, блокировке и возврате из проверки; на остальных переходах пуста</td></tr>
+              <tr><td class="col">createdById</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i></td><td class="dflt">—</td><td>Кто выполнил переход</td></tr>
+              <tr><td class="col">createdAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">CURRENT_TIMESTAMP</td><td>Когда</td></tr>
+            </tbody>
+          </table></div>
+          <div class="rel">
+            <span class="rel-title">Связи</span>
+            <ul>
+              <li><code>taskId</code> → <code>tasks.id</code> <i class="del casc">CASCADE</i> · <code>createdById</code> → <code>users.id</code> <i class="del rest">RESTRICT</i></li>
+            </ul>
+          </div>
+        </article>
+      </div>
+
+      <div class="grp-head">Справочники</div>
+      <div class="ents">
+
+        <article class="ent" id="t-materials">
+          <header>
+            <h3>materials</h3><span class="model">модель Material</span>
+            <p class="purpose">Общий справочник материалов. Уникальность названия не проверяется — одноимённые позиции завести можно.</p>
+          </header>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
+            <tbody>
+              <tr><td class="col">id</td><td class="typ">text</td><td class="flags"><i class="tag pk">PK</i></td><td class="dflt">—</td><td>Идентификатор cuid</td></tr>
+              <tr><td class="col">name</td><td class="typ">text</td><td class="flags"></td><td class="dflt">—</td><td>Название, например «Воздуховод оцинкованный d125»</td></tr>
+              <tr><td class="col">unit</td><td class="typ">text</td><td class="flags"></td><td class="dflt">—</td><td>Единица измерения: шт, м, кг</td></tr>
+              <tr><td class="col">createdAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">CURRENT_TIMESTAMP</td><td>Момент создания</td></tr>
+              <tr><td class="col">updatedAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">—</td><td>Проставляет Prisma</td></tr>
+            </tbody>
+          </table></div>
+          <div class="rel">
+            <span class="rel-title">На эту таблицу ссылаются</span>
+            <ul>
+              <li><code>tech_card_materials.materialId</code>, <code>warehouse_stock.materialId</code>, <code>warehouse_transactions.materialId</code> — все <i class="del rest">RESTRICT</i>: материал нельзя удалить, пока он где-то использован</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="ent" id="t-operations">
+          <header>
+            <h3>operations</h3><span class="model">модель Operation</span>
+            <p class="purpose">Типовая операция — единица работы, повторяющаяся на разных объектах. Задаёт единицу измерения работ и нормы: расхода материалов (через техкарту) и трудозатрат. Ведётся администратором вручную.</p>
+          </header>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
+            <tbody>
+              <tr><td class="col">id</td><td class="typ">text</td><td class="flags"><i class="tag pk">PK</i></td><td class="dflt">—</td><td>Идентификатор cuid</td></tr>
+              <tr><td class="col">name</td><td class="typ">text</td><td class="flags"></td><td class="dflt">—</td><td>Название операции</td></tr>
+              <tr><td class="col">description</td><td class="typ">text</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Описание порядка работ</td></tr>
+              <tr><td class="col">category</td><td class="typ">text</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Направление: вентиляция, электрика и т. д.</td></tr>
+              <tr><td class="col">tools</td><td class="typ">text[]</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">ARRAY[]::text[]</td><td>Список инструментов; вводится строкой через запятую</td></tr>
+              <tr><td class="col">unit</td><td class="typ">text</td><td class="flags"></td><td class="dflt">'компл.'</td><td>Единица измерения <b>работ</b>: м, м², шт, компл. В ней задаётся объём задачи и на неё рассчитаны нормы техкарты. Не путать с <code>materials.unit</code></td></tr>
+              <tr><td class="col">laborNorm</td><td class="typ">numeric(10,3)</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Норма трудозатрат, чел.-ч на единицу работ. Необязательна</td></tr>
+              <tr><td class="col">createdAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">CURRENT_TIMESTAMP</td><td>Момент создания</td></tr>
+              <tr><td class="col">updatedAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">—</td><td>Проставляет Prisma</td></tr>
+            </tbody>
+          </table></div>
+          <div class="rel">
+            <span class="rel-title">На эту таблицу ссылаются</span>
+            <ul>
+              <li><code>tech_card_materials.operationId</code> <i class="del casc">CASCADE</i> — удаление операции уносит её техкарту</li>
+              <li><code>tasks.operationId</code> <i class="del rest">RESTRICT</i> — операцию нельзя удалить, если по ней есть задачи</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="ent" id="t-tech_card_materials">
+          <header>
+            <h3>tech_card_materials</h3><span class="model">модель TechCardMaterial</span>
+            <p class="purpose">Строка технологической карты: норма расхода материала <b>на одну единицу работ</b> операции (<code>operations.unit</code>). Плановый расход по задаче считается как норма × <code>tasks.volume</code> и подставляется монтажнику при завершении.</p>
+          </header>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
+            <tbody>
+              <tr><td class="col">id</td><td class="typ">text</td><td class="flags"><i class="tag pk">PK</i></td><td class="dflt">—</td><td>Идентификатор cuid</td></tr>
+              <tr><td class="col">operationId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i> <i class="tag uq">UQ</i></td><td class="dflt">—</td><td>Операция. Уникальна в паре с materialId</td></tr>
+              <tr><td class="col">materialId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i> <i class="tag uq">UQ</i></td><td class="dflt">—</td><td>Материал</td></tr>
+              <tr><td class="col">quantity</td><td class="typ">numeric(12,3)</td><td class="flags"></td><td class="dflt">—</td><td>Норма расхода на одну единицу работ операции, до трёх знаков после запятой</td></tr>
+            </tbody>
+          </table></div>
+          <div class="rel">
+            <span class="rel-title">Связи и ограничения</span>
+            <ul>
+              <li><code>operationId</code> → <code>operations.id</code> <i class="del casc">CASCADE</i> · <code>materialId</code> → <code>materials.id</code> <i class="del rest">RESTRICT</i></li>
+              <li>Уникальная пара <code>(operationId, materialId)</code> — повторное добавление перезаписывает норму, а не суммирует её</li>
+            </ul>
+          </div>
+        </article>
+      </div>
+
+      <div class="grp-head">Склад</div>
+      <div class="ents">
+
+        <article class="ent" id="t-warehouses">
+          <header>
+            <h3>warehouses</h3><span class="model">модель Warehouse</span>
+            <p class="purpose">Склад объекта. Ровно один на объект — это обеспечено уникальностью siteId. Создаётся автоматически при создании объекта.</p>
+          </header>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
+            <tbody>
+              <tr><td class="col">id</td><td class="typ">text</td><td class="flags"><i class="tag pk">PK</i></td><td class="dflt">—</td><td>Идентификатор cuid</td></tr>
+              <tr><td class="col">siteId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i> <i class="tag uq">UQ</i></td><td class="dflt">—</td><td>Объект. Уникален — отношение один к одному</td></tr>
+              <tr><td class="col">createdAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">CURRENT_TIMESTAMP</td><td>Момент создания</td></tr>
+            </tbody>
+          </table></div>
+          <div class="rel">
+            <span class="rel-title">Связи</span>
+            <ul>
+              <li><code>siteId</code> → <code>sites.id</code> <i class="del casc">CASCADE</i></li>
+              <li>Ссылаются на неё <code>warehouse_stock</code>, <code>warehouse_transactions</code> <i class="del casc">CASCADE</i></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="ent" id="t-warehouse_stock">
+          <header>
+            <h3>warehouse_stock</h3><span class="model">модель WarehouseStock</span>
+            <p class="purpose">Текущий остаток материала на складе объекта. Считается не по журналу, а хранится отдельной величиной — журнал движений ведётся параллельно.</p>
+          </header>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
+            <tbody>
+              <tr><td class="col">id</td><td class="typ">text</td><td class="flags"><i class="tag pk">PK</i></td><td class="dflt">—</td><td>Идентификатор cuid</td></tr>
+              <tr><td class="col">warehouseId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i> <i class="tag uq">UQ</i></td><td class="dflt">—</td><td>Склад. Уникален в паре с materialId</td></tr>
+              <tr><td class="col">materialId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i> <i class="tag uq">UQ</i></td><td class="dflt">—</td><td>Материал</td></tr>
+              <tr><td class="col">quantity</td><td class="typ">numeric(12,3)</td><td class="flags"></td><td class="dflt">0</td><td>Остаток. Уменьшается атомарно при завершении задачи</td></tr>
+            </tbody>
+          </table></div>
+          <div class="rel">
+            <span class="rel-title">Связи и ограничения</span>
+            <ul>
+              <li><code>warehouseId</code> → <code>warehouses.id</code> <i class="del casc">CASCADE</i> · <code>materialId</code> → <code>materials.id</code> <i class="del rest">RESTRICT</i></li>
+              <li>Уникальная пара <code>(warehouseId, materialId)</code> — одна строка остатка на материал</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="ent" id="t-warehouse_transactions">
+          <header>
+            <h3>warehouse_transactions</h3><span class="model">модель WarehouseTransaction</span>
+            <p class="purpose">Журнал движений материалов: приход оформляет администратор, расход создаётся автоматически при завершении задачи. Записи не изменяются и не удаляются.</p>
+          </header>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
+            <tbody>
+              <tr><td class="col">id</td><td class="typ">text</td><td class="flags"><i class="tag pk">PK</i></td><td class="dflt">—</td><td>Идентификатор cuid</td></tr>
+              <tr><td class="col">warehouseId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i></td><td class="dflt">—</td><td>Склад</td></tr>
+              <tr><td class="col">materialId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i></td><td class="dflt">—</td><td>Материал</td></tr>
+              <tr><td class="col">type</td><td class="typ">WarehouseTxType</td><td class="flags"></td><td class="dflt">—</td><td>Приход или расход</td></tr>
+              <tr><td class="col">quantity</td><td class="typ">numeric(12,3)</td><td class="flags"></td><td class="dflt">—</td><td>Количество, всегда положительное — направление задаёт type</td></tr>
+              <tr><td class="col">taskId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i> <i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Задача-источник расхода. У прихода пусто</td></tr>
+              <tr><td class="col">note</td><td class="typ">text</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Комментарий, обычно у прихода</td></tr>
+              <tr><td class="col">createdById</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i></td><td class="dflt">—</td><td>Кто оформил движение</td></tr>
+              <tr><td class="col">createdAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">CURRENT_TIMESTAMP</td><td>Когда</td></tr>
+            </tbody>
+          </table></div>
+          <div class="rel">
+            <span class="rel-title">Связи</span>
+            <ul>
+              <li><code>warehouseId</code> → <code>warehouses.id</code> <i class="del casc">CASCADE</i></li>
+              <li><code>materialId</code> → <code>materials.id</code>, <code>createdById</code> → <code>users.id</code> <i class="del rest">RESTRICT</i></li>
+              <li><code>taskId</code> → <code>tasks.id</code> <i class="del setn">SET NULL</i> — движение переживает удаление задачи</li>
+            </ul>
+          </div>
+        </article>
+      </div>
+
+      <div class="grp-head">Учёт</div>
+      <div class="ents">
+
+        <article class="ent" id="t-timesheet_entries">
+          <header>
+            <h3>timesheet_entries</h3><span class="model">модель TimesheetEntry</span>
+            <p class="purpose">Запись табеля. Обычно заводится самим монтажником; бригадир объекта может внести часы за монтажника своей бригады.</p>
+          </header>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
+            <tbody>
+              <tr><td class="col">id</td><td class="typ">text</td><td class="flags"><i class="tag pk">PK</i></td><td class="dflt">—</td><td>Идентификатор cuid</td></tr>
+              <tr><td class="col">installerId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i></td><td class="dflt">—</td><td>Чьи это часы</td></tr>
+              <tr><td class="col">siteId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i> <i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Объект. Обязателен только при записи за другого монтажника</td></tr>
+              <tr><td class="col">date</td><td class="typ">date</td><td class="flags"></td><td class="dflt">—</td><td>Календарный день без времени</td></tr>
+              <tr><td class="col">hours</td><td class="typ">numeric(4,2)</td><td class="flags"></td><td class="dflt">—</td><td>Часы. Ограничение «не больше 24» — только в приложении</td></tr>
+              <tr><td class="col">note</td><td class="typ">text</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Комментарий</td></tr>
+              <tr><td class="col">createdAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">CURRENT_TIMESTAMP</td><td>Когда внесена</td></tr>
+            </tbody>
+          </table></div>
+          <div class="rel">
+            <span class="rel-title">Связи</span>
+            <ul>
+              <li><code>installerId</code> → <code>users.id</code> <i class="del rest">RESTRICT</i> · <code>siteId</code> → <code>sites.id</code> <i class="del setn">SET NULL</i></li>
+              <li>Уникальности по дню нет — несколько записей за одну дату допустимы</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="ent" id="t-financial_records">
+          <header>
+            <h3>financial_records</h3><span class="model">модель FinancialRecord</span>
+            <p class="purpose">Взаиморасчёт с монтажником. Баланс не хранится — он считается как сумма начислений минус сумма выплат. Раздел виден только администратору.</p>
+          </header>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Колонка</th><th>Тип</th><th>Ключи</th><th>По умолчанию</th><th>Описание</th></tr></thead>
+            <tbody>
+              <tr><td class="col">id</td><td class="typ">text</td><td class="flags"><i class="tag pk">PK</i></td><td class="dflt">—</td><td>Идентификатор cuid</td></tr>
+              <tr><td class="col">participantId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i></td><td class="dflt">—</td><td>Участник расчёта — монтажник</td></tr>
+              <tr><td class="col">siteId</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i> <i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Объект, к которому относится расчёт; необязателен</td></tr>
+              <tr><td class="col">type</td><td class="typ">FinancialRecordType</td><td class="flags"></td><td class="dflt">—</td><td>Начисление или выплата</td></tr>
+              <tr><td class="col">amount</td><td class="typ">numeric(12,2)</td><td class="flags"></td><td class="dflt">—</td><td>Сумма, всегда положительная — направление задаёт type</td></tr>
+              <tr><td class="col">note</td><td class="typ">text</td><td class="flags"><i class="tag nl">NULL</i></td><td class="dflt">—</td><td>Основание расчёта</td></tr>
+              <tr><td class="col">createdById</td><td class="typ">text</td><td class="flags"><i class="tag fk">FK</i></td><td class="dflt">—</td><td>Администратор, создавший запись</td></tr>
+              <tr><td class="col">createdAt</td><td class="typ">timestamp</td><td class="flags"></td><td class="dflt">CURRENT_TIMESTAMP</td><td>Когда</td></tr>
+            </tbody>
+          </table></div>
+          <div class="rel">
+            <span class="rel-title">Связи</span>
+            <ul>
+              <li><code>participantId</code>, <code>createdById</code> → <code>users.id</code> <i class="del rest">RESTRICT</i></li>
+              <li><code>siteId</code> → <code>sites.id</code> <i class="del setn">SET NULL</i></li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ УДАЛЕНИЕ ============ -->
+    <section class="sec" id="delete">
+      <h2>Правила удаления</h2>
+      <p>
+        Самое неочевидное место схемы. Двадцать три внешних ключа используют
+        три разные стратегии, и последствия удаления сильно зависят от того,
+        что именно удаляют.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Что удаляют</th><th>Что произойдёт</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="col">sites<br><span class="typ">объект</span></td>
+              <td>
+                Каскадом уносит подпроекты, а с ними все задачи и их историю статусов;
+                назначения монтажников; склад с остатками и журналом движений.
+                В табеле и финансовых записях ссылка на объект просто обнуляется —
+                сами записи остаются. <b>Самое разрушительное удаление в системе.</b>
+              </td>
+            </tr>
+            <tr>
+              <td class="col">users<br><span class="typ">пользователь</span></td>
+              <td>
+                На практике невозможно, если человек что-то делал: <i class="del rest">RESTRICT</i>
+                стоит на авторстве переходов, складских движений, табеля и финансовых
+                записей. База откажет. Заказчика без объектов и монтажника без
+                назначений удалить можно.
+              </td>
+            </tr>
+            <tr>
+              <td class="col">materials<br><span class="typ">материал</span></td>
+              <td>
+                Запрещено, если материал есть хотя бы в одной техкарте, в остатке
+                или в журнале движений — всюду <i class="del rest">RESTRICT</i>.
+              </td>
+            </tr>
+            <tr>
+              <td class="col">operations<br><span class="typ">операция</span></td>
+              <td>
+                Каскадом удаляет свою техкарту, но запрещено, если по операции уже
+                поставлена хотя бы одна задача <i class="del rest">RESTRICT</i>.
+              </td>
+            </tr>
+            <tr>
+              <td class="col">tasks<br><span class="typ">задача</span></td>
+              <td>
+                Уносит историю статусов <i class="del casc">CASCADE</i>. Складские
+                движения остаются, но теряют ссылку на задачу
+                <i class="del setn">SET NULL</i> — списанный материал в остатки
+                не возвращается.
+              </td>
+            </tr>
+            <tr>
+              <td class="col">warehouses<br><span class="typ">склад</span></td>
+              <td>Уносит все остатки и весь журнал движений <i class="del casc">CASCADE</i>.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <b>Практический вывод.</b> В приложении нет ни одного экрана, удаляющего
+        объект, задачу или пользователя, — удаление доступно только для строк
+        техкарты и назначений монтажников. Всё описанное выше проявится лишь при
+        работе с базой напрямую. Перед такой операцией делайте дамп.
+      </div>
+    </section>
+
+    <!-- ============ ЗАМЕЧАНИЯ ============ -->
+    <section class="sec" id="notes">
+      <h2>Замечания по схеме</h2>
+      <p>
+        Четыре особенности, видимые в DDL. Ни одна не мешает работе сегодня, но
+        каждая всплывёт при переносе данных, росте объёмов или доработках.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Особенность</th><th>Что это значит на практике</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="col">updatedAt без DEFAULT</td>
+              <td>
+                Колонка объявлена <code>NOT NULL</code>, но значения по умолчанию в базе
+                нет — его проставляет Prisma. Прямой <code>INSERT</code> через SQL, минуя
+                приложение, упадёт с ошибкой. Учитывайте при импорте данных и
+                миграциях из Excel или 1С.
+              </td>
+            </tr>
+            <tr>
+              <td class="col">Нет индексов на внешних ключах</td>
+              <td>
+                PostgreSQL не создаёт их автоматически, а Prisma здесь их не объявляла.
+                Из индексов есть только первичные ключи и шесть уникальных ограничений.
+                На текущих объёмах это незаметно; при росте до сотен тысяч задач и
+                движений первым делом индексируйте <code>tasks.subProjectId</code>,
+                <code>task_status_events.taskId</code> и
+                <code>warehouse_transactions.warehouseId</code>.
+              </td>
+            </tr>
+            <tr>
+              <td class="col">Нет CHECK-ограничений</td>
+              <td>
+                Правила «часов не больше 24» и «количество больше нуля» живут только в
+                zod-схемах приложения. База примет и 99.99 часа, и отрицательный
+                остаток, если писать в неё напрямую. Приложение таких значений не
+                создаёт, но защиты на уровне БД нет.
+              </td>
+            </tr>
+            <tr>
+              <td class="col">timestamp без часового пояса</td>
+              <td>
+                Все временные метки — <code>timestamp without time zone</code>, то есть
+                хранятся во времени сервера. Пока и сервер, и пользователи в одном
+                часовом поясе, это не проявляется; при работе из разных поясов
+                понадобится переход на <code>timestamptz</code>.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        Отдельно: защиты на уровне строк (Row Level Security) в базе нет — вся
+        авторизация реализована в приложении. Обоснование этого решения описано в
+        <code>README.md</code> репозитория.
+      </div>
+    </section>
+
+    <footer>
+      <span>Гильдия Комфорта · учёт монтажных работ: автоматика, вентиляция, электрика, кондиционирование</span>
+      <span>Источник: prisma/schema.prisma и information_schema рабочей базы · PostgreSQL 16 · Prisma 7</span>
+    </footer>
+
+  </main>
+</div>

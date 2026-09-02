@@ -1,0 +1,38 @@
+{
+  "name": "guild-of-comfort",
+  "version": "0.1.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1",
+    "@types/nodemailer": "^8.0.1",
+    "bcryptjs": "^3.0.3",
+    "exceljs": "^4.4.0",
+    "jose": "^6.2.4",
+    "next": "16.2.12",
+    "nodemailer": "^9.0.5",
+    "pg": "^8.22.0",
+    "prisma": "^7.9.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.12",
+    "playwright": "^1.62.0",
+    "tsx": "^4.23.1",
+    "typescript": "^5"
+  }
+}

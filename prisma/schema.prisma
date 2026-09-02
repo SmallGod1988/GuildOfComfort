@@ -1,0 +1,450 @@
+// Prisma schema for GuildOfComfort — учёт монтажных работ (автоматика,
+// вентиляция, электрика, кондиционирование).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  INSTALLER
+  CUSTOMER
+}
+
+enum SiteStatus {
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+}
+
+enum TaskStatus {
+  FREE // создана, не закреплена
+  ASSIGNED // закреплена за монтажником, ещё не начата
+  IN_PROGRESS // монтажник выполняет
+  PAUSED // приостановлена монтажником (причина обязательна)
+  BLOCKED // заблокирована внешней причиной (причина обязательна)
+  IN_REVIEW // выполнена монтажником, ждёт приёмки
+  DONE // принята
+}
+
+enum WarehouseTxType {
+  IN // приход на склад
+  OUT // списание (обычно по задаче)
+}
+
+enum FinancialRecordType {
+  ACCRUAL // начисление (к выплате)
+  PAYOUT // выплата
+}
+
+// Пользователь системы: администратор, монтажник или заказчик.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role
+  fullName     String
+  phone        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // как заказчик
+  sitesAsCustomer Site[] @relation("CustomerSites")
+
+  // как монтажник
+  assignedSites         SiteInstaller[]
+  assignedTasks         Task[]                @relation("AssignedInstaller")
+  reviewedTasks         Task[]                @relation("TaskReviewer")
+  taskStatusEvents      TaskStatusEvent[]
+  timesheetEntries      TimesheetEntry[]
+  warehouseTransactions WarehouseTransaction[]
+
+  // финансы: записи, где этот пользователь — участник расчёта
+  financialRecordsAsParticipant FinancialRecord[] @relation("FinancialParticipant")
+  // финансы: записи, которые этот пользователь (админ) создал
+  financialRecordsCreated       FinancialRecord[] @relation("FinancialCreatedBy")
+
+  // null = работает, имеет дату = уволен (архив)
+  deactivatedAt DateTime?
+
+  // email verification
+  emailVerified DateTime?
+
+  // password reset tokens
+  passwordResetTokens PasswordResetToken[]
+
+  // email logs
+  emailLogs EmailLog[]
+
+  @@map("users")
+}
+
+// Объект монтажа.
+model Site {
+  id         String     @id @default(cuid())
+  name       String
+  address    String
+  customerId String?
+  customer   User?      @relation("CustomerSites", fields: [customerId], references: [id])
+  status     SiteStatus @default(ACTIVE)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  subProjects      SubProject[]
+  installers       SiteInstaller[]
+  warehouse        Warehouse?
+  timesheetEntries TimesheetEntry[]
+  financialRecords FinancialRecord[]
+  workBlocks       WorkBlock[]
+
+  @@map("sites")
+}
+
+// Монтажники, назначенные на объект (многие-ко-многим).
+// Бригадирство привязано к объекту: на одном объекте монтажник может быть
+// бригадиром (и вести табель за бригаду), на другом — обычным исполнителем.
+model SiteInstaller {
+  id          String   @id @default(cuid())
+  siteId      String
+  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  installerId String
+  installer   User     @relation(fields: [installerId], references: [id])
+  isForeman   Boolean  @default(false)
+  assignedAt  DateTime @default(now())
+
+  @@unique([siteId, installerId])
+  @@map("site_installers")
+}
+
+// Подпроект объекта (например: вентиляция, электрика, кондиционирование).
+model SubProject {
+  id        String   @id @default(cuid())
+  siteId    String
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks Task[]
+
+  @@map("sub_projects")
+}
+
+// Справочник операций. В будущем может подтягиваться из коммерческих
+// предложений — пока ведётся вручную администратором.
+model Operation {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  category    String?
+  tools       String[] @default([])
+  // Единица измерения РАБОТ (м, м², шт, компл.) — не путать с Material.unit,
+  // где единица самого материала. Нормы техкарты задаются на одну такую
+  // единицу, а фактический расход считается умножением на объём задачи.
+  unit        String   @default("компл.")
+  // Норма трудозатрат, чел.-ч на единицу работ. Необязательна.
+  laborNorm   Decimal? @db.Decimal(10, 3)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  techCardMaterials TechCardMaterial[]
+  tasks             Task[]
+
+  @@map("operations")
+}
+
+// Технологическая карта операции: норма расхода материала НА ОДНУ ЕДИНИЦУ
+// работ операции (Operation.unit). Плановый расход по задаче —
+// quantity × Task.volume.
+model TechCardMaterial {
+  id          String    @id @default(cuid())
+  operationId String
+  operation   Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+  materialId  String
+  material    Material  @relation(fields: [materialId], references: [id])
+  quantity    Decimal   @db.Decimal(12, 3)
+
+  @@unique([operationId, materialId])
+  @@map("tech_card_materials")
+}
+
+// Задача: строка списка работ по объекту. Одна таблица держит всю иерархию
+// листа «КП»: раздел → задача → подзадача → под-подзадача (через parentId).
+//
+// Раздел (isSection) — только заголовок-группировка, без объёма и исполнителя.
+// Узел без детей — рабочая задача, её выполняет монтажник.
+// Узел с детьми — контейнер: его готовность собирается из детей по весам.
+model Task {
+  id           String     @id @default(cuid())
+  subProjectId String
+  subProject   SubProject @relation(fields: [subProjectId], references: [id], onDelete: Cascade)
+  // Операции нет у разделов и у контейнеров, работа которых лежит в детях.
+  operationId  String?
+  operation    Operation? @relation(fields: [operationId], references: [id])
+  title        String
+  description  String?
+  // Объём работ в единицах операции (Operation.unit). По умолчанию 1 —
+  // так задачи, созданные до введения нормирования, ведут себя как прежде.
+  volume       Decimal    @default(1) @db.Decimal(12, 3)
+  // Фактически выполненный объём. Готовность листа = volumeFact / volume.
+  volumeFact   Decimal    @default(0) @db.Decimal(12, 3)
+  status       TaskStatus @default(FREE)
+
+  // --- иерархия ---
+  parentId String?
+  parent   Task?   @relation("TaskTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children Task[]  @relation("TaskTree")
+
+  // Номер строки из КП («1», «1.1», «2.1.1»). Хранится явно, а не считается:
+  // в КП нумерация бывает с пропусками (после 8 идёт 10).
+  code      String?
+  sortOrder Int     @default(0)
+  isSection Boolean @default(false)
+
+  // Вес строки в готовности родителя, в процентах. Задаётся вручную только
+  // для этапов («навеска 15 % / расключение 85 %»). У позиций КП вес не
+  // проставляют: он считается из денег — см. amount.
+  weight Decimal? @db.Decimal(7, 4)
+
+  // Цена за единицу по КП. По ней считается заработанное на гибкой задаче:
+  // закрыто 50 из 700 м × 120 ₽ = 6 000 ₽.
+  unitPrice Decimal? @db.Decimal(12, 2)
+
+  // Сумма позиции по КП. Вес позиции в готовности объекта = amount / ИТОГО,
+  // ровно как в листе КП. Хранится отдельно от volume × unitPrice, потому что
+  // в КП позиции сливают: подключение термоконтактов (800 ₽) входит в
+  // подключение вентиляторов, и сумма строки больше её же цены × объём.
+  amount Decimal? @db.Decimal(12, 2)
+
+  // Блок работ, в котором эта строка выдаётся монтажникам. Соседи по дереву
+  // могут лежать в разных блоках: навеска щита — в одном, расключение — в
+  // другом, потому что между ними должен пройти кабель.
+  blockId String?
+  block   WorkBlock? @relation(fields: [blockId], references: [id], onDelete: SetNull)
+
+  // Единица измерения, когда операции нет («линия», «уст»). Иначе берётся
+  // из Operation.unit.
+  unit String?
+
+  // Система на объекте: «ПВ1», «ПВ2», «ПВ1 / ПВ2», «уточнить». Строка, а не
+  // enum: на каждом объекте свой набор систем.
+  system String?
+
+  // Гибкая задача: монтажник сам заводит подзадачи, фиксируя участок и объём.
+  isFlexible Boolean @default(false)
+
+  installerId String?
+  installer   User?   @relation("AssignedInstaller", fields: [installerId], references: [id])
+
+  assignedAt  DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+  reviewedAt  DateTime?
+
+  // Контроль ОТК: кто принял работу.
+  reviewedById String?
+  reviewedBy   User?   @relation("TaskReviewer", fields: [reviewedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  statusEvents          TaskStatusEvent[]
+  warehouseTransactions WarehouseTransaction[]
+
+  @@index([parentId])
+  @@index([subProjectId])
+  @@index([blockId])
+  @@map("tasks")
+}
+
+// Блок работ — то, что выдаётся монтажникам как единица очерёдности.
+// Не совпадает с деревом задач: один блок может собирать несколько позиций КП
+// (приводы, сервоприводы, насосы — один блок), а одна позиция может делиться
+// между блоками по этапам (монтаж гильз — один блок, зачеканка — другой,
+// между ними прокладывают кабель).
+model WorkBlock {
+  id     String @id @default(cuid())
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  code String // «Б1»
+  name String
+  // Ссылка на КП для отчёта заказчику: «поз. 4, этап 1».
+  kpPositions String?
+  sortOrder   Int     @default(0)
+
+  // Доля готовности предшественников, при которой блок можно начинать.
+  // 1 = только после полного завершения; 0.6 — можно вести параллельно.
+  threshold Decimal @default(1) @db.Decimal(4, 3)
+
+  // Заполняется вручную: нет материалов, нет доступа, не готова стройка.
+  // Непустая причина делает блок заблокированным независимо от готовности
+  // предшественников и попадает в отчёт заказчику.
+  blockReason String?
+
+  // Формулировка для заказчика — без внутренней кухни.
+  customerNote String?
+
+  tasks        Task[]
+  predecessors WorkBlockDependency[] @relation("Dependent")
+  successors   WorkBlockDependency[] @relation("Predecessor")
+
+  @@unique([siteId, code])
+  @@index([siteId])
+  @@map("work_blocks")
+}
+
+// Ребро графа очерёдности: блок нельзя начинать, пока не готов предшественник.
+model WorkBlockDependency {
+  id            String    @id @default(cuid())
+  blockId       String
+  block         WorkBlock @relation("Dependent", fields: [blockId], references: [id], onDelete: Cascade)
+  predecessorId String
+  predecessor   WorkBlock @relation("Predecessor", fields: [predecessorId], references: [id], onDelete: Cascade)
+
+  @@unique([blockId, predecessorId])
+  @@index([predecessorId])
+  @@map("work_block_dependencies")
+}
+
+// История переходов статуса задачи (для пауз/блокировок обязательна причина).
+model TaskStatusEvent {
+  id          String     @id @default(cuid())
+  taskId      String
+  task        Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  fromStatus  TaskStatus
+  toStatus    TaskStatus
+  reason      String?
+  createdById String
+  createdBy   User       @relation(fields: [createdById], references: [id])
+  createdAt   DateTime   @default(now())
+
+  @@map("task_status_events")
+}
+
+// Справочник материалов (саморезы, гайки, болты и т.д.).
+model Material {
+  id        String   @id @default(cuid())
+  name      String
+  unit      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  techCardEntries       TechCardMaterial[]
+  stock                 WarehouseStock[]
+  warehouseTransactions WarehouseTransaction[]
+
+  @@map("materials")
+}
+
+// Склад объекта — по одному на объект.
+model Warehouse {
+  id        String   @id @default(cuid())
+  siteId    String   @unique
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  stock        WarehouseStock[]
+  transactions WarehouseTransaction[]
+
+  @@map("warehouses")
+}
+
+// Текущий остаток материала на складе объекта.
+model WarehouseStock {
+  id          String    @id @default(cuid())
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  materialId  String
+  material    Material  @relation(fields: [materialId], references: [id])
+  quantity    Decimal   @default(0) @db.Decimal(12, 3)
+
+  @@unique([warehouseId, materialId])
+  @@map("warehouse_stock")
+}
+
+// Движение материала на складе: приход или списание (обычно по задаче).
+model WarehouseTransaction {
+  id          String          @id @default(cuid())
+  warehouseId String
+  warehouse   Warehouse       @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  materialId  String
+  material    Material        @relation(fields: [materialId], references: [id])
+  type        WarehouseTxType
+  quantity    Decimal         @db.Decimal(12, 3)
+  taskId      String?
+  task        Task?           @relation(fields: [taskId], references: [id])
+  note        String?
+  createdById String
+  createdBy   User            @relation(fields: [createdById], references: [id])
+  createdAt   DateTime        @default(now())
+
+  @@map("warehouse_transactions")
+}
+
+// Табель рабочего времени монтажника.
+model TimesheetEntry {
+  id          String   @id @default(cuid())
+  installerId String
+  installer   User     @relation(fields: [installerId], references: [id])
+  siteId      String?
+  site        Site?    @relation(fields: [siteId], references: [id])
+  date        DateTime @db.Date
+  hours       Decimal  @db.Decimal(4, 2)
+  note        String?
+  createdAt   DateTime @default(now())
+
+  @@map("timesheet_entries")
+}
+
+// Приватные финансовые записи по участникам (видны только admin и самому
+// участнику по своим записям).
+model FinancialRecord {
+  id            String              @id @default(cuid())
+  participantId String
+  participant   User                @relation("FinancialParticipant", fields: [participantId], references: [id])
+  siteId        String?
+  site          Site?               @relation(fields: [siteId], references: [id])
+  type          FinancialRecordType
+  amount        Decimal             @db.Decimal(12, 2)
+  note          String?
+  createdById   String
+  createdBy     User                @relation("FinancialCreatedBy", fields: [createdById], references: [id])
+  createdAt     DateTime            @default(now())
+
+  @@map("financial_records")
+}
+
+// Password reset tokens
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([userId, tokenHash])
+  @@map("password_reset_tokens")
+}
+
+// Email logs for debugging and audit
+model EmailLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email     String
+  type      String   // "verification", "password_reset", "report", "payout", "message"
+  status    String   // "sent", "failed"
+  error     String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@map("email_logs")
+}

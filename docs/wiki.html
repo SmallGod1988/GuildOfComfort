@@ -1,0 +1,1900 @@
+<title>Гильдия Комфорта — вики</title>
+<style>
+  :root {
+    --ink:        hsl(212 28% 12%);
+    --ink-soft:   hsl(210 14% 38%);
+    --ink-faint:  hsl(208 12% 55%);
+    --paper:      hsl(204 22% 93%);
+    --surface:    hsl(0 0% 100%);
+    --surface-2:  hsl(204 20% 96%);
+    --border:     hsl(206 18% 82%);
+    --border-soft:hsl(206 20% 88%);
+    --accent:     hsl(29 80% 45%);
+
+    --role-admin:     hsl(212 48% 40%);
+    --role-installer: hsl(29 80% 45%);
+    --role-customer:  hsl(158 40% 32%);
+    --role-any:       hsl(206 12% 50%);
+
+    --drawing-bg:  hsl(204 22% 96%);
+    --drawing-ink: hsl(212 28% 14%);
+
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    --rail: 108px;
+    --col: 208px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink:        hsl(204 18% 90%);
+      --ink-soft:   hsl(206 12% 66%);
+      --ink-faint:  hsl(206 10% 52%);
+      --paper:      hsl(212 24% 10%);
+      --surface:    hsl(212 20% 14%);
+      --surface-2:  hsl(212 18% 17%);
+      --border:     hsl(210 14% 27%);
+      --border-soft:hsl(210 14% 22%);
+      --accent:     hsl(29 85% 58%);
+      --role-admin:     hsl(210 62% 62%);
+      --role-installer: hsl(29 85% 58%);
+      --role-customer:  hsl(158 44% 50%);
+      --role-any:       hsl(206 12% 60%);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ink:        hsl(204 18% 90%);
+    --ink-soft:   hsl(206 12% 66%);
+    --ink-faint:  hsl(206 10% 52%);
+    --paper:      hsl(212 24% 10%);
+    --surface:    hsl(212 20% 14%);
+    --surface-2:  hsl(212 18% 17%);
+    --border:     hsl(210 14% 27%);
+    --border-soft:hsl(210 14% 22%);
+    --accent:     hsl(29 85% 58%);
+    --role-admin:     hsl(210 62% 62%);
+    --role-installer: hsl(29 85% 58%);
+    --role-customer:  hsl(158 44% 50%);
+    --role-any:       hsl(206 12% 60%);
+  }
+
+  :root[data-theme="light"] {
+    --ink:        hsl(212 28% 12%);
+    --ink-soft:   hsl(210 14% 38%);
+    --ink-faint:  hsl(208 12% 55%);
+    --paper:      hsl(204 22% 93%);
+    --surface:    hsl(0 0% 100%);
+    --surface-2:  hsl(204 20% 96%);
+    --border:     hsl(206 18% 82%);
+    --border-soft:hsl(206 20% 88%);
+    --accent:     hsl(29 80% 45%);
+    --role-admin:     hsl(212 48% 40%);
+    --role-installer: hsl(29 80% 45%);
+    --role-customer:  hsl(158 40% 32%);
+    --role-any:       hsl(206 12% 50%);
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .shell {
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: 2.75rem 1.5rem 5rem;
+    display: grid;
+    grid-template-columns: 236px minmax(0, 1fr);
+    gap: 3rem;
+    align-items: start;
+  }
+
+  /* ---------- оглавление ---------- */
+
+  .toc {
+    position: sticky;
+    top: 1.5rem;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    font-size: 0.855rem;
+    padding-right: 0.5rem;
+  }
+  .toc .toc-title {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.25rem;
+  }
+  .toc a { display: block; color: var(--ink-soft); text-decoration: none; padding: 0.14rem 0; }
+  .toc a:hover { color: var(--accent); }
+  .toc .sub { padding-left: 0.85rem; font-size: 0.79rem; color: var(--ink-faint); }
+  .toc .gap { height: 0.5rem; }
+
+  /* ---------- документ ---------- */
+
+  .doc { min-width: 0; display: flex; flex-direction: column; gap: 3.5rem; }
+
+  .masthead { display: flex; flex-direction: column; gap: 0.9rem; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  h1 {
+    font-size: clamp(1.85rem, 4.6vw, 2.7rem);
+    line-height: 1.08;
+    letter-spacing: -0.022em;
+    font-weight: 700;
+    text-wrap: balance;
+    margin: 0;
+  }
+  .lede { max-width: 64ch; color: var(--ink-soft); font-size: 1.02rem; margin: 0; }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.73rem;
+    letter-spacing: 0.05em;
+    color: var(--ink-faint);
+    border-top: 1px solid var(--border);
+    padding-top: 0.85rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .meta b { color: var(--ink); font-weight: 600; }
+
+  .sec { display: flex; flex-direction: column; gap: 1.15rem; scroll-margin-top: 1.25rem; }
+  .sec > h2 {
+    font-size: 1.35rem;
+    letter-spacing: -0.014em;
+    font-weight: 700;
+    margin: 0;
+    padding-bottom: 0.55rem;
+    border-bottom: 2px solid var(--ink);
+  }
+  .sec > h3 {
+    font-size: 1.02rem;
+    font-weight: 650;
+    margin: 0.6rem 0 0;
+    letter-spacing: -0.008em;
+    scroll-margin-top: 1.25rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+  }
+  .sec > h3 .gkey {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .sec p { margin: 0; max-width: 70ch; }
+  .sec > p { color: var(--ink-soft); font-size: 0.96rem; }
+
+  .note {
+    background: var(--surface-2);
+    border-left: 2px solid var(--accent);
+    padding: 0.8rem 1rem;
+    border-radius: 2px;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    max-width: none;
+  }
+
+  /* ---------- легенда ---------- */
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.4rem;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 0.73rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 0.42rem; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .dot.a { background: var(--role-admin); }
+  .dot.m { background: var(--role-installer); }
+  .dot.z { background: var(--role-customer); }
+  .dot.x { background: var(--role-any); }
+
+  /* ---------- карта ---------- */
+
+  .scroller {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--surface-2);
+  }
+  .map {
+    display: grid;
+    grid-template-columns: var(--rail) repeat(10, minmax(var(--col), 1fr));
+    min-width: max-content;
+  }
+  .corner, .rail {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: var(--surface-2);
+    border-right: 1px solid var(--border);
+    padding: 0.85rem 0.8rem;
+  }
+  .corner { border-bottom: 1px solid var(--border); }
+  .colhead {
+    padding: 0.85rem;
+    border-bottom: 1px solid var(--border);
+    border-left: 1px solid var(--border-soft);
+    background: var(--surface-2);
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .colhead .key { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.14em; color: var(--accent); font-weight: 700; }
+  .colhead .name { font-size: 0.85rem; font-weight: 650; line-height: 1.25; }
+  .colhead .count { font-family: var(--mono); font-size: 0.65rem; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+  .rail { display: flex; flex-direction: column; gap: 0.28rem; }
+  .rail .band-n { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.14em; color: var(--ink-faint); }
+  .rail .band-name { font-size: 0.82rem; font-weight: 650; line-height: 1.2; }
+  .rail .band-count { font-family: var(--mono); font-size: 0.65rem; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+  .cell {
+    padding: 0.7rem;
+    border-left: 1px solid var(--border-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: var(--surface-2);
+  }
+  .band-skeleton .rail, .band-skeleton .cell { border-bottom: 1px solid var(--border); }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: 2px;
+    padding: 0.55rem 0.6rem 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .band-skeleton .card { border-left: 3px solid var(--accent); }
+  .card .id {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .card .t { font-size: 0.81rem; line-height: 1.32; font-weight: 500; }
+  .none { font-family: var(--mono); font-size: 0.68rem; color: var(--ink-faint); letter-spacing: 0.06em; }
+  .hint { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.06em; color: var(--ink-faint); }
+
+  /* ---------- чертёж (mermaid) ---------- */
+
+  .drawing {
+    position: relative;
+    background: var(--drawing-bg);
+    color: var(--drawing-ink);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 2rem 1.25rem 1.5rem;
+    overflow-x: auto;
+  }
+  .drawing::before, .drawing::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-color: var(--accent);
+    border-style: solid;
+    opacity: 0.75;
+  }
+  .drawing::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+  .drawing::after  { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+  .drawing .stamp {
+    position: absolute;
+    top: 8px;
+    right: 14px;
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: hsl(210 14% 45%);
+  }
+  .drawing pre.mermaid { display: flex; justify-content: center; margin: 0; }
+
+  /* ---------- таблицы ---------- */
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 3px; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 0.875rem; }
+  th, td { text-align: left; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num { font-family: var(--mono); color: var(--ink-faint); font-variant-numeric: tabular-nums; width: 1%; white-space: nowrap; }
+  td.usid { font-family: var(--mono); font-size: 0.8rem; white-space: nowrap; width: 1%; }
+  td.who { white-space: nowrap; width: 1%; }
+  td.mono { font-family: var(--mono); font-size: 0.78rem; }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- правила ---------- */
+
+  .rules { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); }
+  .rule {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-top: 2px solid var(--accent);
+    border-radius: 2px;
+    padding: 0.85rem 0.95rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .rule h4 { margin: 0; font-size: 0.9rem; font-weight: 650; }
+  .rule p { font-size: 0.85rem; color: var(--ink-soft); line-height: 1.5; }
+
+  /* ---------- истории ---------- */
+
+  .stories { display: flex; flex-direction: column; gap: 0.7rem; }
+
+  .story {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-left: 3px solid var(--role, var(--role-any));
+    border-radius: 2px;
+    padding: 0.9rem 1.05rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    scroll-margin-top: 1.25rem;
+  }
+  .story.r-a { --role: var(--role-admin); }
+  .story.r-m { --role: var(--role-installer); }
+  .story.r-z { --role: var(--role-customer); }
+  .story.r-x { --role: var(--role-any); }
+
+  .story .head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+  .story .sid {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--role, var(--role-any));
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .story h4 { margin: 0; font-size: 0.98rem; font-weight: 650; letter-spacing: -0.006em; }
+  .story .who-tag {
+    font-family: var(--mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-left: auto;
+  }
+  .story .want { font-size: 0.92rem; }
+  .story .want b { font-weight: 650; }
+  .story ul {
+    margin: 0;
+    padding-left: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.28rem;
+    font-size: 0.875rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .story .src {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--ink-faint);
+    letter-spacing: 0.02em;
+    border-top: 1px dashed var(--border);
+    padding-top: 0.5rem;
+    line-height: 1.55;
+    word-break: break-word;
+  }
+
+  /* ---------- юз-кейсы ---------- */
+
+  .ucs { display: flex; flex-direction: column; gap: 1rem; }
+
+  .uc {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: 2px;
+    padding: 1.1rem 1.2rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    scroll-margin-top: 1.25rem;
+  }
+  .uc.key-uc { border-top: 3px solid var(--accent); }
+  .uc-head { display: flex; flex-direction: column; gap: 0.3rem; border-bottom: 1px solid var(--border-soft); padding-bottom: 0.7rem; }
+  .uc-head .ucid { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.13em; color: var(--accent); font-weight: 700; }
+  .uc-head h4 { margin: 0; font-size: 1.06rem; font-weight: 650; letter-spacing: -0.008em; }
+  .uc .facts { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.86rem; color: var(--ink-soft); }
+  .uc .facts b { color: var(--ink); font-weight: 600; }
+
+  .flow h5 {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 0.45rem;
+    font-weight: 600;
+  }
+  .flow ol, .flow ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.885rem;
+    line-height: 1.5;
+  }
+  .flow ol { color: var(--ink); }
+
+  .alt {
+    background: var(--surface-2);
+    border-left: 2px solid var(--ink-faint);
+    padding: 0.75rem 0.95rem 0.85rem;
+    border-radius: 2px;
+  }
+  .alt ul { color: var(--ink-soft); }
+  .alt li b { color: var(--ink); font-weight: 650; }
+
+  .post { font-size: 0.885rem; color: var(--ink-soft); }
+  .post b { color: var(--ink); font-weight: 600; }
+  .covers { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.04em; color: var(--ink-faint); }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 1.25rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: minmax(0, 1fr); gap: 2rem; padding: 2rem 1rem 3.5rem; }
+    .toc {
+      position: static;
+      max-height: none;
+      overflow: visible;
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: 2px;
+      padding: 0.9rem 1rem;
+    }
+    .toc .sub { display: none; }
+    :root { --rail: 92px; --col: 176px; }
+  }
+</style>
+
+<div class="shell">
+
+  <nav class="toc">
+    <div class="toc-title">Содержание</div>
+    <a href="#o-sisteme">О системе</a>
+    <a href="#roli">Роли</a>
+    <a href="#pravila">Ключевые правила</a>
+    <a href="#model">Модель данных</a>
+    <div class="gap"></div>
+    <a href="#karta">Карта историй</a>
+    <a href="#cikl">Жизненный цикл задачи</a>
+    <a href="#put">Сквозной путь по скелету</a>
+    <div class="gap"></div>
+    <a href="#stories">User stories · 44</a>
+    <a class="sub" href="#gr-a">A. Доступ в систему</a>
+    <a class="sub" href="#gr-b">B. Справочники и техкарты</a>
+    <a class="sub" href="#gr-c">C. Запуск объекта</a>
+    <a class="sub" href="#gr-d">D. Планирование работ</a>
+    <a class="sub" href="#gr-e">E. Снабжение объекта</a>
+    <a class="sub" href="#gr-f">F. Выполнение работ</a>
+    <a class="sub" href="#gr-g">G. Приёмка работ</a>
+    <a class="sub" href="#gr-h">H. Учёт времени</a>
+    <a class="sub" href="#gr-i">I. Взаиморасчёты</a>
+    <a class="sub" href="#gr-j">J. Наблюдение и пользователи</a>
+    <div class="gap"></div>
+    <a href="#cases">Сценарии использования · 12</a>
+    <div class="gap"></div>
+    <a href="#net">Чего в системе нет</a>
+  </nav>
+
+  <main class="doc">
+
+    <header class="masthead">
+      <p class="eyebrow">Гильдия Комфорта · продуктовая документация</p>
+      <h1>Вики</h1>
+      <p class="lede">
+        Описание системы учёта монтажных работ с точки зрения пользователя: что
+        она умеет, кто что делает и как проходят рабочие сценарии. Здесь описана
+        только реализованная функциональность — если чего-то нет на этой
+        странице, этого нет и в приложении.
+      </p>
+      <p class="meta">
+        <span><b>44</b> истории</span>
+        <span><b>12</b> сценариев</span>
+        <span><b>10</b> активностей</span>
+        <span><b>3</b> роли</span>
+        <span>на <b>04.08.2026</b></span>
+      </p>
+    </header>
+
+    <!-- ============ О СИСТЕМЕ ============ -->
+    <section class="sec" id="o-sisteme">
+      <h2>О системе</h2>
+      <p>
+        «Гильдия Комфорта» — приложение для учёта монтажных работ: автоматика,
+        вентиляция, электрика, кондиционирование. Оно связывает три вещи,
+        которые обычно живут порознь: план работ, фактическое выполнение и
+        расход материалов.
+      </p>
+      <p>
+        Работы устроены иерархией: <b>объект</b> → <b>подпроекты</b> по
+        направлениям → <b>задачи</b>. Каждая задача основана на <b>операции</b>
+        из справочника, а у операции есть <b>технологическая карта</b> — какие
+        инструменты нужны и сколько какого материала уходит.
+      </p>
+      <p>
+        У каждого объекта свой <b>склад</b>: материалы приходуются
+        администратором, а списываются в момент, когда монтажник завершает
+        задачу — по норме из техкарты с корректировкой по факту. Если материала
+        не хватает, завершить задачу нельзя. Помимо этого система ведёт
+        <b>табель</b> рабочего времени монтажников и приватные
+        <b>финансовые записи</b> — начисления и выплаты.
+      </p>
+    </section>
+
+    <!-- ============ РОЛИ ============ -->
+    <section class="sec" id="roli">
+      <h2>Роли</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Роль</th><th>Кто это</th><th>Как появляется</th><th>Что делает</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="chip"><i class="dot a"></i>Администратор</span></td>
+              <td>руководитель работ, прораб</td>
+              <td>только сид-скриптом при развёртывании</td>
+              <td>ведёт справочники и техкарты, создаёт объекты и задачи, снабжает склад, принимает работу, ведёт расчёты</td>
+            </tr>
+            <tr>
+              <td><span class="chip"><i class="dot m"></i>Монтажник</span></td>
+              <td>исполнитель на объекте</td>
+              <td>регистрируется сам на <code>/register</code></td>
+              <td>берёт свободные задачи, ведёт их по статусам, списывает материалы, вносит часы; бригадир объекта — ещё и за свою бригаду</td>
+            </tr>
+            <tr>
+              <td><span class="chip"><i class="dot z"></i>Заказчик</span></td>
+              <td>клиент, для которого идут работы</td>
+              <td>регистрируется сам на <code>/register</code></td>
+              <td>смотрит прогресс по своим объектам — только чтение</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">
+        Зарегистрироваться администратором нельзя: в форме регистрации доступны
+        только роли монтажника и заказчика.
+      </p>
+    </section>
+
+    <!-- ============ ПРАВИЛА ============ -->
+    <section class="sec" id="pravila">
+      <h2>Ключевые правила системы</h2>
+      <p>
+        Шесть решений, из которых следует бо́льшая часть альтернативных потоков
+        в сценариях использования.
+      </p>
+      <div class="rules">
+        <div class="rule">
+          <h4>Задачи не назначают — их берут</h4>
+          <p>Администратор создаёт задачу свободной. Монтажник, назначенный на объект, забирает её сам. Отказаться от взятой задачи нельзя.</p>
+        </div>
+        <div class="rule">
+          <h4>Простой всегда объяснён</h4>
+          <p>Пауза, блокировка и возврат из проверки не выполняются без текстовой причины. Она сохраняется в истории задачи вместе с автором перехода.</p>
+        </div>
+        <div class="rule">
+          <h4>Списание атомарно</h4>
+          <p>Не хватило хотя бы одного материала — не списывается ничего, задача остаётся в работе. Частичного расхода в базе не остаётся.</p>
+        </div>
+        <div class="rule">
+          <h4>Приёмка только за администратором</h4>
+          <p>Всё до статуса «На проверке» делает монтажник. Принять или вернуть задачу может лишь администратор. «Выполнена» — конечный статус.</p>
+        </div>
+        <div class="rule">
+          <h4>Заказчик не видит внутреннюю кухню</h4>
+          <p>Ни монтажников, ни склада, ни техкарт, ни табеля, ни финансов — только состав работ и их статусы. Кабинет заказчика полностью на чтение.</p>
+        </div>
+        <div class="rule">
+          <h4>Склад живёт вместе с объектом</h4>
+          <p>Склад создаётся автоматически в момент создания объекта. Отдельного шага настройки нет — объект без склада в системе не появляется.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ МОДЕЛЬ ДАННЫХ ============ -->
+    <section class="sec" id="model">
+      <h2>Модель данных</h2>
+      <p>Полная схема — <code>prisma/schema.prisma</code>.</p>
+      <div class="drawing">
+        <span class="stamp">Схема сущностей</span>
+<pre class="mermaid">
+%%{init: {"theme":"neutral"}}%%
+erDiagram
+    User ||--o{ Site : "заказчик"
+    User ||--o{ SiteInstaller : "монтажник"
+    Site ||--o{ SiteInstaller : ""
+    Site ||--o{ SubProject : ""
+    Site ||--|| Warehouse : ""
+    SubProject ||--o{ Task : ""
+    Operation ||--o{ Task : "основа"
+    Operation ||--o{ TechCardMaterial : "техкарта"
+    Material ||--o{ TechCardMaterial : ""
+    Task ||--o{ TaskStatusEvent : "история"
+    Task ||--o{ WarehouseTransaction : "списание"
+    Warehouse ||--o{ WarehouseStock : "остатки"
+    Warehouse ||--o{ WarehouseTransaction : "движения"
+    Material ||--o{ WarehouseStock : ""
+    User ||--o{ TimesheetEntry : "табель"
+    User ||--o{ FinancialRecord : "расчёты"
+</pre>
+      </div>
+    </section>
+
+    <!-- ============ КАРТА ============ -->
+    <section class="sec" id="karta">
+      <h2>Карта историй</h2>
+      <p>
+        Карта построена по методу Джеффа Паттона: по горизонтали — хребет из
+        десяти активностей в порядке реального хода работ, по вертикали — две
+        полосы приоритета. Полоса «Скелет» — минимальный сквозной путь: без
+        любой из этих четырнадцати историй нельзя провести одну задачу от
+        постановки до приёмки. Обе полосы уже реализованы в коде; деление
+        аналитическое.
+      </p>
+      <div class="legend">
+        <span><i class="dot a"></i> Администратор</span>
+        <span><i class="dot m"></i> Монтажник</span>
+        <span><i class="dot z"></i> Заказчик</span>
+        <span><i class="dot x"></i> Любая роль</span>
+      </div>
+      <p class="hint">→ карта прокручивается по горизонтали</p>
+
+      <div class="scroller">
+        <div class="map">
+          <div class="corner"></div>
+
+          <div class="colhead"><span class="key">A</span><span class="name">Доступ в систему</span><span class="count">5 историй</span></div>
+          <div class="colhead"><span class="key">B</span><span class="name">Справочники и техкарты</span><span class="count">6 историй</span></div>
+          <div class="colhead"><span class="key">C</span><span class="name">Запуск объекта</span><span class="count">7 историй</span></div>
+          <div class="colhead"><span class="key">D</span><span class="name">Планирование работ</span><span class="count">4 истории</span></div>
+          <div class="colhead"><span class="key">E</span><span class="name">Снабжение объекта</span><span class="count">2 истории</span></div>
+          <div class="colhead"><span class="key">F</span><span class="name">Выполнение работ</span><span class="count">8 историй</span></div>
+          <div class="colhead"><span class="key">G</span><span class="name">Приёмка работ</span><span class="count">3 истории</span></div>
+          <div class="colhead"><span class="key">H</span><span class="name">Учёт времени</span><span class="count">3 истории</span></div>
+          <div class="colhead"><span class="key">I</span><span class="name">Взаиморасчёты</span><span class="count">2 истории</span></div>
+          <div class="colhead"><span class="key">J</span><span class="name">Наблюдение за прогрессом</span><span class="count">3 истории</span></div>
+
+          <div class="band-skeleton" style="display: contents">
+            <div class="rail"><span class="band-n">ПОЛОСА 1</span><span class="band-name">Скелет</span><span class="band-count">14</span></div>
+
+            <div class="cell">
+              <div class="card"><span class="id"><i class="dot x"></i>US-01</span><span class="t">Самостоятельная регистрация</span></div>
+              <div class="card"><span class="id"><i class="dot x"></i>US-02</span><span class="t">Вход по e-mail и паролю</span></div>
+            </div>
+            <div class="cell">
+              <div class="card"><span class="id"><i class="dot a"></i>US-06</span><span class="t">Завести материал</span></div>
+              <div class="card"><span class="id"><i class="dot a"></i>US-08</span><span class="t">Завести операцию</span></div>
+              <div class="card"><span class="id"><i class="dot a"></i>US-10</span><span class="t">Норма расхода в техкарте</span></div>
+            </div>
+            <div class="cell">
+              <div class="card"><span class="id"><i class="dot a"></i>US-12</span><span class="t">Создать объект</span></div>
+              <div class="card"><span class="id"><i class="dot a"></i>US-14</span><span class="t">Назначить монтажника</span></div>
+            </div>
+            <div class="cell">
+              <div class="card"><span class="id"><i class="dot a"></i>US-18</span><span class="t">Создать подпроект</span></div>
+              <div class="card"><span class="id"><i class="dot a"></i>US-19</span><span class="t">Создать задачу с объёмом работ</span></div>
+            </div>
+            <div class="cell">
+              <div class="card"><span class="id"><i class="dot a"></i>US-21</span><span class="t">Оприходовать материал</span></div>
+            </div>
+            <div class="cell">
+              <div class="card"><span class="id"><i class="dot m"></i>US-24</span><span class="t">Взять свободную задачу</span></div>
+              <div class="card"><span class="id"><i class="dot m"></i>US-25</span><span class="t">Начать выполнение</span></div>
+              <div class="card"><span class="id"><i class="dot m"></i>US-29</span><span class="t">Завершить со списанием материалов</span></div>
+            </div>
+            <div class="cell">
+              <div class="card"><span class="id"><i class="dot a"></i>US-32</span><span class="t">Принять задачу</span></div>
+            </div>
+            <div class="cell"><span class="none">—</span></div>
+            <div class="cell"><span class="none">—</span></div>
+            <div class="cell"><span class="none">—</span></div>
+          </div>
+
+          <div class="rail"><span class="band-n">ПОЛОСА 2</span><span class="band-name">Остальной MVP</span><span class="band-count">29</span></div>
+
+          <div class="cell">
+            <div class="card"><span class="id"><i class="dot x"></i>US-03</span><span class="t">Выход из системы</span></div>
+            <div class="card"><span class="id"><i class="dot x"></i>US-04</span><span class="t">Переход в кабинет своей роли</span></div>
+            <div class="card"><span class="id"><i class="dot x"></i>US-05</span><span class="t">Изоляция кабинетов по ролям</span></div>
+          </div>
+          <div class="cell">
+            <div class="card"><span class="id"><i class="dot a"></i>US-07</span><span class="t">Справочник материалов</span></div>
+            <div class="card"><span class="id"><i class="dot a"></i>US-09</span><span class="t">Справочник операций</span></div>
+            <div class="card"><span class="id"><i class="dot a"></i>US-11</span><span class="t">Убрать материал из техкарты</span></div>
+          </div>
+          <div class="cell">
+            <div class="card"><span class="id"><i class="dot a"></i>US-13</span><span class="t">Прикрепить заказчика позже</span></div>
+            <div class="card"><span class="id"><i class="dot a"></i>US-15</span><span class="t">Снять монтажника с объекта</span></div>
+            <div class="card"><span class="id"><i class="dot a"></i>US-16</span><span class="t">Менять статус объекта</span></div>
+            <div class="card"><span class="id"><i class="dot a"></i>US-17</span><span class="t">Все объекты с прогрессом</span></div>
+            <div class="card"><span class="id"><i class="dot a"></i>US-42</span><span class="t">Назначить бригадира</span></div>
+          </div>
+          <div class="cell">
+            <div class="card"><span class="id"><i class="dot a"></i>US-20</span><span class="t">Задачи подпроекта со статусами</span></div>
+            <div class="card"><span class="id"><i class="dot a"></i>US-43</span><span class="t">Плановые трудозатраты</span></div>
+          </div>
+          <div class="cell">
+            <div class="card"><span class="id"><i class="dot a"></i>US-22</span><span class="t">Остатки на складе объекта</span></div>
+          </div>
+          <div class="cell">
+            <div class="card"><span class="id"><i class="dot m"></i>US-23</span><span class="t">Видеть свои объекты</span></div>
+            <div class="card"><span class="id"><i class="dot m"></i>US-26</span><span class="t">Пауза с причиной</span></div>
+            <div class="card"><span class="id"><i class="dot m"></i>US-27</span><span class="t">Блокировка с причиной</span></div>
+            <div class="card"><span class="id"><i class="dot m"></i>US-28</span><span class="t">Возобновить задачу</span></div>
+            <div class="card"><span class="id"><i class="dot m"></i>US-30</span><span class="t">Карточка задачи с историей</span></div>
+          </div>
+          <div class="cell">
+            <div class="card"><span class="id"><i class="dot a"></i>US-31</span><span class="t">Очередь задач на проверку</span></div>
+            <div class="card"><span class="id"><i class="dot a"></i>US-33</span><span class="t">Вернуть в работу с причиной</span></div>
+          </div>
+          <div class="cell">
+            <div class="card"><span class="id"><i class="dot m"></i>US-34</span><span class="t">Внести отработанные часы</span></div>
+            <div class="card"><span class="id"><i class="dot m"></i>US-35</span><span class="t">Свои записи табеля</span></div>
+            <div class="card"><span class="id"><i class="dot a"></i>US-36</span><span class="t">Сводный табель по всем</span></div>
+            <div class="card"><span class="id"><i class="dot a"></i>US-44</span><span class="t">Выгрузка табеля в Excel</span></div>
+          </div>
+          <div class="cell">
+            <div class="card"><span class="id"><i class="dot a"></i>US-37</span><span class="t">Начисление или выплата</span></div>
+            <div class="card"><span class="id"><i class="dot a"></i>US-38</span><span class="t">Балансы и история расчётов</span></div>
+          </div>
+          <div class="cell">
+            <div class="card"><span class="id"><i class="dot z"></i>US-39</span><span class="t">Свои объекты с прогрессом</span></div>
+            <div class="card"><span class="id"><i class="dot z"></i>US-40</span><span class="t">Детализация по подпроектам</span></div>
+            <div class="card"><span class="id"><i class="dot a"></i>US-41</span><span class="t">Список пользователей</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ЖИЗНЕННЫЙ ЦИКЛ ============ -->
+    <section class="sec" id="cikl">
+      <h2>Жизненный цикл задачи</h2>
+      <p>
+        Стержень активностей F и G. Права на переходы разделены жёстко: всё до
+        статуса «На проверке» выполняет монтажник, приёмку — только
+        администратор. Каждый переход попадает в историю задачи: откуда, куда,
+        причина, кто и когда.
+      </p>
+      <div class="drawing">
+        <span class="stamp">Схема переходов</span>
+<pre class="mermaid">
+%%{init: {"theme":"neutral"}}%%
+stateDiagram-v2
+    state "Свободна" as FREE
+    state "Назначена" as ASSIGNED
+    state "В работе" as PROGRESS
+    state "Пауза" as PAUSED
+    state "Заблокирована" as BLOCKED
+    state "На проверке" as REVIEW
+    state "Выполнена" as DONE
+
+    [*] --> FREE: администратор создал задачу
+    FREE --> ASSIGNED: монтажник взял (US-24)
+    ASSIGNED --> PROGRESS: начал работу (US-25)
+    PROGRESS --> PAUSED: пауза, причина обязательна (US-26)
+    PROGRESS --> BLOCKED: блокировка, причина обязательна (US-27)
+    PAUSED --> PROGRESS: возобновил (US-28)
+    BLOCKED --> PROGRESS: возобновил (US-28)
+    PROGRESS --> REVIEW: завершил, материалы списаны (US-29)
+    REVIEW --> DONE: администратор принял (US-32)
+    REVIEW --> PROGRESS: вернул, причина обязательна (US-33)
+    DONE --> [*]
+</pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Статус</th><th>На экране</th><th>Кто может выйти из статуса</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">FREE</td><td>Свободна</td><td>монтажник, назначенный на объект</td></tr>
+            <tr><td class="mono">ASSIGNED</td><td>Назначена</td><td>монтажник — владелец задачи</td></tr>
+            <tr><td class="mono">IN_PROGRESS</td><td>В работе</td><td>монтажник — владелец задачи</td></tr>
+            <tr><td class="mono">PAUSED</td><td>Пауза</td><td>монтажник — владелец задачи</td></tr>
+            <tr><td class="mono">BLOCKED</td><td>Заблокирована</td><td>монтажник — владелец задачи</td></tr>
+            <tr><td class="mono">IN_REVIEW</td><td>На проверке</td><td>только администратор</td></tr>
+            <tr><td class="mono">DONE</td><td>Выполнена</td><td>никто — конечный статус</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ СКВОЗНОЙ ПУТЬ ============ -->
+    <section class="sec" id="put">
+      <h2>Сквозной путь по скелету</h2>
+      <p>
+        Порядок, в котором система проходит путь от пустой базы до принятой
+        задачи. Он же — сценарий приёмочной проверки после развёртывания.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Шаг</th><th>Действие</th><th>Кто</th><th>История</th></tr></thead>
+          <tbody>
+            <tr><td class="num">1</td><td>Администратор входит — учётная запись создана сид-скриптом</td><td class="who"><span class="chip"><i class="dot a"></i>Админ</span></td><td class="usid">US-02</td></tr>
+            <tr><td class="num">2</td><td>Монтажник регистрируется сам</td><td class="who"><span class="chip"><i class="dot m"></i>Монтажник</span></td><td class="usid">US-01</td></tr>
+            <tr><td class="num">3</td><td>Заводятся материалы</td><td class="who"><span class="chip"><i class="dot a"></i>Админ</span></td><td class="usid">US-06</td></tr>
+            <tr><td class="num">4</td><td>Заводится операция</td><td class="who"><span class="chip"><i class="dot a"></i>Админ</span></td><td class="usid">US-08</td></tr>
+            <tr><td class="num">5</td><td>Заполняется технологическая карта операции</td><td class="who"><span class="chip"><i class="dot a"></i>Админ</span></td><td class="usid">US-10</td></tr>
+            <tr><td class="num">6</td><td>Создаётся объект — склад заводится автоматически</td><td class="who"><span class="chip"><i class="dot a"></i>Админ</span></td><td class="usid">US-12</td></tr>
+            <tr><td class="num">7</td><td>Монтажник назначается на объект</td><td class="who"><span class="chip"><i class="dot a"></i>Админ</span></td><td class="usid">US-14</td></tr>
+            <tr><td class="num">8</td><td>Создаётся подпроект по направлению работ</td><td class="who"><span class="chip"><i class="dot a"></i>Админ</span></td><td class="usid">US-18</td></tr>
+            <tr><td class="num">9</td><td>Ставится задача на основе операции</td><td class="who"><span class="chip"><i class="dot a"></i>Админ</span></td><td class="usid">US-19</td></tr>
+            <tr><td class="num">10</td><td>Материал приходуется на склад объекта</td><td class="who"><span class="chip"><i class="dot a"></i>Админ</span></td><td class="usid">US-21</td></tr>
+            <tr><td class="num">11</td><td>Монтажник берёт свободную задачу</td><td class="who"><span class="chip"><i class="dot m"></i>Монтажник</span></td><td class="usid">US-24</td></tr>
+            <tr><td class="num">12</td><td>Монтажник начинает работу</td><td class="who"><span class="chip"><i class="dot m"></i>Монтажник</span></td><td class="usid">US-25</td></tr>
+            <tr><td class="num">13</td><td>Монтажник завершает задачу, материалы списываются со склада</td><td class="who"><span class="chip"><i class="dot m"></i>Монтажник</span></td><td class="usid">US-29</td></tr>
+            <tr><td class="num">14</td><td>Администратор принимает задачу</td><td class="who"><span class="chip"><i class="dot a"></i>Админ</span></td><td class="usid">US-32</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="hint">
+        После шага 14 задача учитывается в прогрессе объекта — его видят администратор (US-17) и заказчик (US-39).
+      </p>
+    </section>
+
+    <!-- ============ ИСТОРИИ ============ -->
+    <section class="sec" id="stories">
+      <h2>User stories</h2>
+      <p>
+        Все 44 истории реализованной функциональности с критериями приёмки,
+        отражающими фактическое поведение кода — включая ограничения. У каждой
+        истории указан файл, где она реализована.
+      </p>
+
+      <h3 id="gr-a"><span class="gkey">A</span> Доступ в систему</h3>
+      <div class="stories">
+
+        <article class="story r-x" id="US-01">
+          <div class="head"><span class="sid">US-01</span><h4>Самостоятельная регистрация</h4><span class="who-tag">Монтажник · Заказчик</span></div>
+          <p class="want"><b>Как</b> новый монтажник или заказчик, <b>я хочу</b> зарегистрироваться сам, <b>чтобы</b> начать работать без ожидания, пока меня заведёт администратор.</p>
+          <ul>
+            <li>Форма на <code>/register</code> запрашивает: роль, ФИО, e-mail, телефон (необязательно), пароль.</li>
+            <li>В выборе роли доступны только «Монтажник» и «Заказчик». Роль «Администратор» зарегистрировать нельзя — она создаётся только сид-скриптом.</li>
+            <li>Пароль — не короче 6 символов, ФИО — не короче 2 символов, e-mail приводится к нижнему регистру и проверяется на формат.</li>
+            <li>Повторная регистрация на занятый e-mail отклоняется: «Пользователь с таким e-mail уже зарегистрирован».</li>
+            <li>После регистрации пользователь сразу залогинен и попадает в свой кабинет — повторный вход не требуется.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/register/page.tsx · src/app/register/RegisterForm.tsx · src/app/actions/auth.ts</p>
+        </article>
+
+        <article class="story r-x" id="US-02">
+          <div class="head"><span class="sid">US-02</span><h4>Вход по e-mail и паролю</h4><span class="who-tag">Все роли</span></div>
+          <p class="want"><b>Как</b> пользователь системы, <b>я хочу</b> войти по e-mail и паролю, <b>чтобы</b> получить доступ к своим данным.</p>
+          <ul>
+            <li>При неверных данных — единое сообщение «Неверный e-mail или пароль»: по нему нельзя определить, существует ли такой пользователь.</li>
+            <li>Пароли хранятся в виде bcrypt-хэша, в открытом виде не хранятся нигде.</li>
+            <li>Сессия — JWT в httpOnly-cookie со сроком жизни 7 дней; из JavaScript браузера cookie недоступна.</li>
+            <li>После входа пользователь попадает в кабинет своей роли.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/login/page.tsx · src/app/login/LoginForm.tsx · src/app/actions/auth.ts · src/lib/auth.ts</p>
+        </article>
+
+        <article class="story r-x" id="US-03">
+          <div class="head"><span class="sid">US-03</span><h4>Выход из системы</h4><span class="who-tag">Все роли</span></div>
+          <p class="want"><b>Как</b> пользователь, <b>я хочу</b> выйти из системы, <b>чтобы</b> никто не мог воспользоваться моей сессией на общем устройстве.</p>
+          <ul>
+            <li>Кнопка «Выйти» доступна в верхней панели на каждой странице любого кабинета.</li>
+            <li>Cookie сессии удаляется, происходит переход на <code>/login</code>.</li>
+          </ul>
+          <p class="src">Реализовано: src/components/TopBar.tsx · src/app/actions/auth.ts</p>
+        </article>
+
+        <article class="story r-x" id="US-04">
+          <div class="head"><span class="sid">US-04</span><h4>Автоматический переход в кабинет своей роли</h4><span class="who-tag">Все роли</span></div>
+          <p class="want"><b>Как</b> пользователь, <b>я хочу</b> после входа сразу оказаться на нужной мне странице, <b>чтобы</b> не искать свой раздел вручную.</p>
+          <ul>
+            <li>Администратор попадает на <code>/admin</code>, монтажник — на <code>/installer</code>, заказчик — на <code>/customer</code>.</li>
+            <li>Тот же переход происходит при открытии корня сайта уже вошедшим пользователем.</li>
+            <li>Уже вошедший пользователь, открывший <code>/login</code> или <code>/register</code>, перенаправляется в свой кабинет.</li>
+          </ul>
+          <p class="src">Реализовано: src/lib/session.ts · src/app/page.tsx · src/proxy.ts</p>
+        </article>
+
+        <article class="story r-x" id="US-05">
+          <div class="head"><span class="sid">US-05</span><h4>Изоляция кабинетов по ролям</h4><span class="who-tag">Все роли</span></div>
+          <p class="want"><b>Как</b> владелец бизнеса, <b>я хочу</b>, чтобы пользователь не мог открыть раздел чужой роли, <b>чтобы</b> коммерческие и личные данные не утекали.</p>
+          <ul>
+            <li>Попытка открыть страницу чужой роли перенаправляет пользователя в его собственный кабинет.</li>
+            <li>Неавторизованный пользователь на защищённой странице отправляется на <code>/login</code>.</li>
+            <li>Проверка выполняется в трёх местах независимо: в layout'е кабинета, на самой странице и внутри каждого серверного действия. <code>src/proxy.ts</code> даёт лишь быстрый оптимистичный редирект и не является источником истины.</li>
+            <li>Данные всегда выбираются с фильтром по владению: монтажник видит только объекты, на которые назначен; заказчик — только свои.</li>
+          </ul>
+          <p class="src">Реализовано: src/lib/session.ts · src/app/admin/layout.tsx · src/app/installer/layout.tsx · src/app/customer/layout.tsx · src/proxy.ts</p>
+        </article>
+      </div>
+
+      <h3 id="gr-b"><span class="gkey">B</span> Справочники и технологические карты</h3>
+      <div class="stories">
+
+        <article class="story r-a" id="US-06">
+          <div class="head"><span class="sid">US-06</span><h4>Завести материал</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> добавить материал в общий справочник, <b>чтобы</b> использовать его в техкартах и на складах объектов.</p>
+          <ul>
+            <li>Форма запрашивает название и единицу измерения (шт, м, кг и т. п.) — оба поля обязательны.</li>
+            <li>Материал сразу доступен для техкарт и для оприходования на склады.</li>
+            <li>Уникальность названия не проверяется — одноимённые материалы завести можно (осознанное упрощение MVP).</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/materials/page.tsx · src/app/actions/materials.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-07">
+          <div class="head"><span class="sid">US-07</span><h4>Смотреть справочник материалов</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> видеть список всех материалов, <b>чтобы</b> понимать, что уже заведено, и не плодить дубли.</p>
+          <ul>
+            <li>Таблица со всеми материалами и их единицами измерения.</li>
+            <li>Сид-скрипт при первом запуске заводит 10 базовых позиций: саморезы, гайки, болты, дюбели, кабель, гофра, воздуховод, хомуты, фреон.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/materials/page.tsx · prisma/seed.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-08">
+          <div class="head"><span class="sid">US-08</span><h4>Завести операцию</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> описать типовую операцию (например, «Монтаж воздуховода d125»), <b>чтобы</b> ставить на её основе задачи на любых объектах.</p>
+          <ul>
+            <li>Форма запрашивает название, <b>единицу измерения работ</b> (по умолчанию «компл.»), норму трудозатрат, категорию, описание и инструменты.</li>
+            <li>Единица измерения работ (м, м², шт, компл.) задаёт, в чём измеряется объём задачи и на что рассчитаны нормы техкарты. Не путать с единицей самого материала.</li>
+            <li>Норма трудозатрат — чел.-ч на единицу работ, необязательна.</li>
+            <li>Инструменты вводятся одной строкой через запятую и сохраняются списком; пустые значения отбрасываются.</li>
+            <li>Операция сразу доступна при создании задач.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/operations/page.tsx · src/app/actions/operations.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-09">
+          <div class="head"><span class="sid">US-09</span><h4>Смотреть справочник операций</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> видеть все операции со сводкой, <b>чтобы</b> понимать, у каких операций уже заполнена техкарта.</p>
+          <ul>
+            <li>Таблица операций с категорией, количеством позиций в техкарте и количеством задач, созданных на основе операции.</li>
+            <li>Название операции — ссылка на её техкарту.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/operations/page.tsx</p>
+        </article>
+
+        <article class="story r-a" id="US-10">
+          <div class="head"><span class="sid">US-10</span><h4>Задать норму расхода материала в техкарте</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> указать норму расхода материала <b>на одну единицу работ</b>, <b>чтобы</b> система сама считала расход по любому объёму, а монтажнику не приходилось умножать в уме.</p>
+          <ul>
+            <li>Форма на странице операции: материал + норма на 1 единицу работ. Подпись поля и столбца подставляет единицу операции — например «Норма на 1 м».</li>
+            <li>Повторное добавление того же материала перезаписывает норму, а не суммирует её.</li>
+            <li>Плановый расход по задаче считается как <b>норма × объём задачи</b> и подставляется в форму завершения (US-29).</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/operations/[operationId]/page.tsx · src/app/actions/operations.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-11">
+          <div class="head"><span class="sid">US-11</span><h4>Убрать материал из техкарты</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> удалить лишний материал из техкарты, <b>чтобы</b> исправить ошибку при заполнении.</p>
+          <ul>
+            <li>Кнопка «Удалить» в строке материала техкарты.</li>
+            <li>Уже созданные задачи и уже сделанные списания не затрагиваются — удаление влияет только на подстановку в будущих задачах.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/operations/[operationId]/page.tsx · src/app/actions/operations.ts</p>
+        </article>
+      </div>
+
+      <h3 id="gr-c"><span class="gkey">C</span> Запуск объекта</h3>
+      <div class="stories">
+
+        <article class="story r-a" id="US-12">
+          <div class="head"><span class="sid">US-12</span><h4>Создать объект</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> завести объект монтажа, <b>чтобы</b> начать планировать по нему работы.</p>
+          <ul>
+            <li>Форма запрашивает название (от 2 символов) и адрес (от 3 символов).</li>
+            <li>Склад объекта создаётся автоматически вместе с объектом — отдельного действия не требуется.</li>
+            <li>Объект создаётся в статусе «Активен».</li>
+            <li>Заказчик выбирается из списка или не указывается вовсе (US-13).</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/page.tsx · src/app/actions/sites.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-13">
+          <div class="head"><span class="sid">US-13</span><h4>Создать объект без заказчика и прикрепить его позже</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> завести объект до того, как заказчик зарегистрировался, <b>чтобы</b> не откладывать планирование работ.</p>
+          <ul>
+            <li>В форме создания объекта есть вариант «— без заказчика (можно прикрепить позже) —».</li>
+            <li>Если заказчиков ещё нет, подсказка объясняет, что объект можно создать без него.</li>
+            <li>На странице объекта без заказчика появляется блок «Прикрепить заказчика». После прикрепления блок исчезает.</li>
+            <li>В списке объектов у объекта без заказчика отображается «не назначен».</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/page.tsx · src/app/admin/sites/[siteId]/page.tsx · src/app/actions/sites.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-14">
+          <div class="head"><span class="sid">US-14</span><h4>Назначить монтажника на объект</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> назначить монтажников на объект, <b>чтобы</b> они видели его в своём кабинете и могли брать задачи.</p>
+          <ul>
+            <li>Выбор из монтажников, ещё не назначенных на этот объект.</li>
+            <li>Повторное назначение того же монтажника безопасно — дубль не создаётся.</li>
+            <li>Только после назначения монтажник видит объект (US-23) и может взять задачу (US-24).</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/sites/[siteId]/page.tsx · src/app/actions/sites.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-15">
+          <div class="head"><span class="sid">US-15</span><h4>Снять монтажника с объекта</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> снять монтажника с объекта, <b>чтобы</b> перераспределить людей между объектами.</p>
+          <ul>
+            <li>Кнопка «Снять» в строке монтажника.</li>
+            <li>Монтажник теряет доступ к объекту и его задачам.</li>
+            <li>Задачи, уже закреплённые за этим монтажником, остаются закреплёнными за ним — автоматически они не освобождаются.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/sites/[siteId]/page.tsx · src/app/actions/sites.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-42">
+          <div class="head"><span class="sid">US-42</span><h4>Назначить бригадира на объекте</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> назначить одного из монтажников бригадиром на объекте, <b>чтобы</b> он вёл табель за всю бригаду и остальным не приходилось заполнять его самим.</p>
+          <ul>
+            <li>В строке каждого назначенного монтажника — кнопка «Сделать бригадиром» / «Снять бригадирство», у текущего бригадира стоит пометка.</li>
+            <li>Бригадирство привязано к <b>объекту</b>: на одном объекте монтажник может быть бригадиром, на другом — обычным исполнителем.</li>
+            <li>Бригадиров на объекте может быть несколько — ограничения нет.</li>
+            <li>Сразу после назначения у монтажника в табеле появляется выбор монтажника (US-34); после снятия — исчезает, и сервер перестаёт принимать от него записи за других.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/sites/[siteId]/page.tsx · src/app/actions/sites.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-16">
+          <div class="head"><span class="sid">US-16</span><h4>Менять статус объекта</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> отметить объект как приостановленный или завершённый, <b>чтобы</b> отражать реальное положение дел.</p>
+          <ul>
+            <li>Три кнопки: «Активен», «Приостановлен», «Завершён»; текущий статус неактивен.</li>
+            <li>Переход возможен между любыми статусами в любом порядке.</li>
+            <li>Статус отображается бейджем в списке объектов.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/sites/[siteId]/page.tsx · src/app/actions/sites.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-17">
+          <div class="head"><span class="sid">US-17</span><h4>Видеть все объекты с прогрессом</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> видеть все объекты на одном экране, <b>чтобы</b> быстро оценить, где что происходит.</p>
+          <ul>
+            <li>Таблица: объект (с адресом), заказчик, статус, прогресс.</li>
+            <li>Прогресс — доля задач в статусе «Выполнена» от всех задач объекта, полосой и в процентах. У объекта без задач — пометка «нет задач».</li>
+            <li>Объекты отсортированы от новых к старым.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/page.tsx</p>
+        </article>
+      </div>
+
+      <h3 id="gr-d"><span class="gkey">D</span> Планирование работ</h3>
+      <div class="stories">
+
+        <article class="story r-a" id="US-18">
+          <div class="head"><span class="sid">US-18</span><h4>Создать подпроект</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> разделить объект на подпроекты (вентиляция, электрика, автоматика, кондиционирование), <b>чтобы</b> группировать задачи по направлениям.</p>
+          <ul>
+            <li>Форма на странице объекта запрашивает название подпроекта (от 2 символов).</li>
+            <li>Подпроекты выводятся списком со сводкой «N из M задач выполнено».</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/sites/[siteId]/page.tsx · src/app/actions/subprojects.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-19">
+          <div class="head"><span class="sid">US-19</span><h4>Создать задачу на основе операции</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> поставить задачу в подпроекте, <b>чтобы</b> монтажник мог взять её в работу.</p>
+          <ul>
+            <li>Форма запрашивает операцию из справочника, название задачи, <b>объём работ</b> (больше нуля) и описание.</li>
+            <li>Объём задаётся в единицах выбранной операции: подпись поля меняется сразу после выбора операции («Объём работ, м»).</li>
+            <li>Под полем объёма показывается плановый расход и плановые трудозатраты, если норма труда задана (US-43).</li>
+            <li>Задача создаётся в статусе «Свободна» и без исполнителя.</li>
+            <li>Назначить задачу конкретному монтажнику администратор не может — монтажник берёт её сам (US-24).</li>
+            <li>Техкарта выбранной операции определяет, какие материалы монтажник будет списывать при завершении.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/sites/[siteId]/sub-projects/[subProjectId]/page.tsx · src/app/actions/tasks.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-43">
+          <div class="head"><span class="sid">US-43</span><h4>Видеть плановые трудозатраты</h4><span class="who-tag">Администратор · Монтажник</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> видеть нормативное время на задачу, <b>чтобы</b> сравнивать его с фактическим табелем и планировать загрузку бригады.</p>
+          <ul>
+            <li>Считается как норма трудозатрат операции × объём задачи, с точностью до сотых чел.-ч.</li>
+            <li>Видно в трёх местах: подсказка под полем объёма при создании задачи, столбец объёма в таблице задач подпроекта, шапка карточки задачи у монтажника.</li>
+            <li>Если норма трудозатрат у операции не задана, ничего не показывается — поле необязательное.</li>
+            <li>Сравнение с табелем система пока не строит: цифры показываются рядом, свод по отклонениям не считается.</li>
+          </ul>
+          <p class="src">Реализовано: src/components/TaskForm.tsx · src/app/admin/sites/[siteId]/sub-projects/[subProjectId]/page.tsx · src/app/installer/tasks/[taskId]/page.tsx</p>
+        </article>
+
+        <article class="story r-a" id="US-20">
+          <div class="head"><span class="sid">US-20</span><h4>Видеть задачи подпроекта</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> видеть все задачи подпроекта, <b>чтобы</b> контролировать, что взято в работу и кем.</p>
+          <ul>
+            <li>Таблица: название задачи, операция, статус (цветной бейдж), монтажник (или «—», если задача свободна).</li>
+            <li>Страница недоступна, если подпроект принадлежит другому объекту, чем указан в адресе.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/sites/[siteId]/sub-projects/[subProjectId]/page.tsx</p>
+        </article>
+      </div>
+
+      <h3 id="gr-e"><span class="gkey">E</span> Снабжение объекта</h3>
+      <div class="stories">
+
+        <article class="story r-a" id="US-21">
+          <div class="head"><span class="sid">US-21</span><h4>Оприходовать материал на склад объекта</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> отразить поступление материала на объект, <b>чтобы</b> монтажники могли списывать его при выполнении задач.</p>
+          <ul>
+            <li>Форма на странице объекта: материал, количество (больше нуля), комментарий (необязательно).</li>
+            <li>Остаток увеличивается, и одновременно создаётся запись движения типа «Приход» с указанием, кто и когда оприходовал. Обе операции — в одной транзакции.</li>
+            <li>Приходовать материалы может только администратор; монтажник — нет.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/sites/[siteId]/page.tsx · src/app/actions/warehouse.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-22">
+          <div class="head"><span class="sid">US-22</span><h4>Видеть остатки на складе объекта</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> видеть текущие остатки по объекту, <b>чтобы</b> вовремя довезти материал.</p>
+          <ul>
+            <li>Таблица «материал — остаток — единица» на странице объекта.</li>
+            <li>Пока приходов не было — «Остатков пока нет».</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/sites/[siteId]/page.tsx</p>
+        </article>
+      </div>
+
+      <h3 id="gr-f"><span class="gkey">F</span> Выполнение работ</h3>
+      <div class="stories">
+
+        <article class="story r-m" id="US-23">
+          <div class="head"><span class="sid">US-23</span><h4>Видеть свои объекты</h4><span class="who-tag">Монтажник</span></div>
+          <p class="want"><b>Как</b> монтажник, <b>я хочу</b> видеть только те объекты, на которые меня назначили, <b>чтобы</b> не отвлекаться на чужие.</p>
+          <ul>
+            <li>Список объектов, где для меня есть назначение (US-14).</li>
+            <li>По каждому объекту — счётчики «Свободных задач» и «Закреплено за мной».</li>
+            <li>Объекты, на которые я не назначен, не видны и недоступны по прямой ссылке.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/installer/page.tsx · src/app/installer/sites/[siteId]/page.tsx</p>
+        </article>
+
+        <article class="story r-m" id="US-24">
+          <div class="head"><span class="sid">US-24</span><h4>Взять свободную задачу в работу</h4><span class="who-tag">Монтажник</span></div>
+          <p class="want"><b>Как</b> монтажник, <b>я хочу</b> сам взять свободную задачу, <b>чтобы</b> начать работу без ожидания распределения.</p>
+          <ul>
+            <li>Кнопка «Взять в работу» показывается только у задач в статусе «Свободна».</li>
+            <li>Задача переходит в статус «Назначена», закрепляется за мной, фиксируется время назначения.</li>
+            <li>Если задачу уже взял кто-то другой — ошибка «Задача уже закреплена за кем-то».</li>
+            <li>Взять задачу можно только на объекте, на который я назначен, иначе — «Вы не назначены на этот объект».</li>
+            <li>Переход записывается в историю задачи.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/installer/sites/[siteId]/page.tsx · src/app/actions/tasks.ts</p>
+        </article>
+
+        <article class="story r-m" id="US-25">
+          <div class="head"><span class="sid">US-25</span><h4>Начать выполнение задачи</h4><span class="who-tag">Монтажник</span></div>
+          <p class="want"><b>Как</b> монтажник, <b>я хочу</b> отметить начало работы, <b>чтобы</b> было видно, что задача в работе, а не просто закреплена.</p>
+          <ul>
+            <li>Кнопка «Выполнить (начать работу)» доступна только в статусе «Назначена».</li>
+            <li>Статус меняется на «В работе», фиксируется время старта.</li>
+            <li>Повторный старт после паузы не перезаписывает первоначальное время начала.</li>
+            <li>Чужую задачу открыть или начать нельзя.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/installer/tasks/[taskId]/page.tsx · src/app/actions/tasks.ts</p>
+        </article>
+
+        <article class="story r-m" id="US-26">
+          <div class="head"><span class="sid">US-26</span><h4>Поставить задачу на паузу с причиной</h4><span class="who-tag">Монтажник</span></div>
+          <p class="want"><b>Как</b> монтажник, <b>я хочу</b> приостановить задачу и объяснить почему, <b>чтобы</b> у администратора была понятная картина по срокам.</p>
+          <ul>
+            <li>Доступно только из статуса «В работе».</li>
+            <li>Причина обязательна (не короче 3 символов) — без неё действие отклоняется.</li>
+            <li>Статус меняется на «Пауза», причина сохраняется в истории задачи и показывается на карточке.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/installer/tasks/[taskId]/page.tsx · src/app/actions/tasks.ts</p>
+        </article>
+
+        <article class="story r-m" id="US-27">
+          <div class="head"><span class="sid">US-27</span><h4>Заблокировать задачу с причиной</h4><span class="who-tag">Монтажник</span></div>
+          <p class="want"><b>Как</b> монтажник, <b>я хочу</b> отметить, что задача заблокирована внешней причиной (нет материала, не готово смежниками), <b>чтобы</b> это было видно и не считалось моим простоем.</p>
+          <ul>
+            <li>Доступно только из статуса «В работе».</li>
+            <li>Причина обязательна (не короче 3 символов).</li>
+            <li>Статус меняется на «Заблокирована», причина сохраняется в истории.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/installer/tasks/[taskId]/page.tsx · src/app/actions/tasks.ts</p>
+        </article>
+
+        <article class="story r-m" id="US-28">
+          <div class="head"><span class="sid">US-28</span><h4>Возобновить задачу</h4><span class="who-tag">Монтажник</span></div>
+          <p class="want"><b>Как</b> монтажник, <b>я хочу</b> вернуть задачу в работу после паузы или снятия блокировки, <b>чтобы</b> продолжить выполнение.</p>
+          <ul>
+            <li>Кнопка «Возобновить» доступна в статусах «Пауза» и «Заблокирована».</li>
+            <li>Статус возвращается в «В работе»; причина при возобновлении не требуется.</li>
+            <li>Переход записывается в историю.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/installer/tasks/[taskId]/page.tsx · src/app/actions/tasks.ts</p>
+        </article>
+
+        <article class="story r-m" id="US-29">
+          <div class="head"><span class="sid">US-29</span><h4>Завершить задачу со списанием материалов</h4><span class="who-tag">Монтажник</span></div>
+          <p class="want"><b>Как</b> монтажник, <b>я хочу</b> отчитаться о фактическом расходе материалов при завершении задачи, <b>чтобы</b> склад объекта отражал реальные остатки.</p>
+          <ul>
+            <li>Доступно только из статуса «В работе».</li>
+            <li>Форма показывает по одному полю на каждый материал техкарты операции; количество предзаполнено расчётом <b>норма × объём задачи</b> и может быть изменено по факту. Значение 0 означает, что материал не расходовался.</li>
+            <li><b>Списать можно только материалы из техкарты операции.</b> Посторонний материал отклоняет весь запрос: «Материал не входит в техкарту операции». Проверка выполняется на сервере при каждой отправке.</li>
+            <li>Если в техкарте операции материалов нет — форма это сообщает, и задача завершается без списания.</li>
+            <li>Остатки уменьшаются, по каждому материалу создаётся запись движения типа «Расход», привязанная к этой задаче и ко мне.</li>
+            <li>Если хотя бы одного материала не хватает на складе — операция отклоняется целиком: не списывается ничего, задача остаётся «В работе», показывается сообщение вида «Недостаточно материала «Гайка М8» на складе: доступно 5, требуется 12».</li>
+            <li>При успехе задача переходит в статус «На проверке», фиксируется время завершения, переход попадает в историю.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/installer/tasks/[taskId]/page.tsx · src/app/actions/tasks.ts (транзакция со списанием)</p>
+        </article>
+
+        <article class="story r-m" id="US-30">
+          <div class="head"><span class="sid">US-30</span><h4>Видеть карточку задачи с инструментами и историей</h4><span class="who-tag">Монтажник</span></div>
+          <p class="want"><b>Как</b> монтажник, <b>я хочу</b> видеть, что за работа, каким инструментом и что с задачей уже происходило, <b>чтобы</b> не переспрашивать.</p>
+          <ul>
+            <li>Карточка показывает название, подпроект, операцию, статус, описание.</li>
+            <li>Список инструментов из операции — если они заданы.</li>
+            <li>История всех переходов: когда, из какого статуса в какой, причина, кто выполнил — от новых к старым.</li>
+            <li>Открыть можно только задачу, закреплённую за мной.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/installer/tasks/[taskId]/page.tsx</p>
+        </article>
+      </div>
+
+      <h3 id="gr-g"><span class="gkey">G</span> Приёмка работ</h3>
+      <div class="stories">
+
+        <article class="story r-a" id="US-31">
+          <div class="head"><span class="sid">US-31</span><h4>Видеть очередь задач на проверку</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> видеть все задачи, ждущие приёмки, <b>чтобы</b> не пропустить выполненную работу.</p>
+          <ul>
+            <li>Отдельная страница «Проверка задач» со всеми задачами в статусе «На проверке».</li>
+            <li>По каждой задаче видно объект, подпроект, операцию и монтажника.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/tasks/review/page.tsx</p>
+        </article>
+
+        <article class="story r-a" id="US-32">
+          <div class="head"><span class="sid">US-32</span><h4>Принять задачу</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> принять выполненную задачу, <b>чтобы</b> она засчиталась в прогресс объекта.</p>
+          <ul>
+            <li>Кнопка «Принять» доступна только для задач в статусе «На проверке».</li>
+            <li>Статус меняется на «Выполнена», фиксируется время приёмки, переход попадает в историю.</li>
+            <li>Задача учитывается в прогрессе объекта (US-17, US-39).</li>
+            <li>«Выполнена» — конечный статус: вернуть задачу из него нельзя.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/tasks/review/page.tsx · src/app/actions/tasks.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-33">
+          <div class="head"><span class="sid">US-33</span><h4>Вернуть задачу в работу с причиной</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> вернуть некачественно выполненную задачу с объяснением, <b>чтобы</b> монтажник знал, что доделать.</p>
+          <ul>
+            <li>Форма возврата доступна только для задач в статусе «На проверке».</li>
+            <li>Причина обязательна (не короче 3 символов).</li>
+            <li>Задача возвращается в статус «В работе», причина видна монтажнику в истории задачи.</li>
+            <li>Уже списанные материалы на склад не возвращаются — при повторном завершении монтажник указывает только дополнительный расход.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/tasks/review/page.tsx · src/app/actions/tasks.ts</p>
+        </article>
+      </div>
+
+      <h3 id="gr-h"><span class="gkey">H</span> Учёт времени</h3>
+      <div class="stories">
+
+        <article class="story r-m" id="US-34">
+          <div class="head"><span class="sid">US-34</span><h4>Внести отработанные часы</h4><span class="who-tag">Монтажник</span></div>
+          <p class="want"><b>Как</b> монтажник, <b>я хочу</b> записать отработанные часы, <b>чтобы</b> они попали в табель для расчёта.</p>
+          <ul>
+            <li>Экран рассчитан на телефон: сегмент «Ввод / Данные», быстрые кнопки «Вчера / Сегодня», чипы последних объектов, тач-цели не меньше 44px.</li>
+            <li>Форма: монтажник, дата (по умолчанию сегодня), часы, объект (необязательно), комментарий.</li>
+            <li>Часы — больше нуля и не больше 24, шаг 0.5.</li>
+            <li>В выборе объекта — только те объекты, на которые я назначен.</li>
+            <li>Обычный монтажник видит своё имя неизменяемой строкой — записать часы на другого он не может.</li>
+            <li>Бригадир (US-42) видит выбор монтажника и может внести часы за монтажника своей бригады; выбор монтажника и объекта остаётся согласованной парой.</li>
+            <li><b>Сервер проверяет права заново, независимо от формы.</b> При записи за другого: объект обязателен, автор должен быть бригадиром именно на этом объекте, целевой монтажник — назначен на него.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/installer/timesheet/page.tsx · src/components/TimesheetForm.tsx · src/app/actions/timesheet.ts</p>
+        </article>
+
+        <article class="story r-m" id="US-35">
+          <div class="head"><span class="sid">US-35</span><h4>Видеть свои записи табеля</h4><span class="who-tag">Монтажник</span></div>
+          <p class="want"><b>Как</b> монтажник, <b>я хочу</b> видеть свой табель, <b>чтобы</b> проверить, всё ли я внёс.</p>
+          <ul>
+            <li>Вкладка «Данные»: дата, объект, часы, комментарий — от новых дат к старым, последние 100 записей.</li>
+            <li>Обычный монтажник видит только свои записи; чужие недоступны.</li>
+            <li>Бригадир дополнительно видит записи бригады по объектам, где он бригадир — он же их и вносит. Чужое имя в такой записи подписано.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/installer/timesheet/page.tsx</p>
+        </article>
+
+        <article class="story r-a" id="US-36">
+          <div class="head"><span class="sid">US-36</span><h4>Видеть сводный табель по всем монтажникам</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> видеть табель всех монтажников, <b>чтобы</b> контролировать загрузку и считать выплаты.</p>
+          <ul>
+            <li>Таблица: дата, монтажник, объект, часы, комментарий.</li>
+            <li>Показываются последние 200 записей, от новых к старым.</li>
+            <li>Раздел доступен только администратору; редактировать чужие записи нельзя — таблица только для просмотра.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/timesheet/page.tsx</p>
+        </article>
+
+        <article class="story r-a" id="US-44">
+          <div class="head"><span class="sid">US-44</span><h4>Выгрузить табель в Excel</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> выгрузить табель за период в Excel, <b>чтобы</b> свести часы в той же таблице, которую компания вела вручную.</p>
+          <ul>
+            <li>Над сводным табелем — форма с двумя датами; по умолчанию первое и последнее число текущего месяца.</li>
+            <li>Книга из семи листов в том же порядке и с теми же названиями, что в таблице компании: «Справочники», «Табель», «Сводка Сотрудник×Проект», «Сводка по месяцам», «Отчет по сотрудникам», «Отчет по проектам», «Инструкция».</li>
+            <li>Данные лежат только на листе «Табель». Остальные листы считаются <b>живыми формулами</b> (SUMIFS, COUNTIFS, SUMPRODUCT, DATE), а не готовыми числами: дописанные вручную строки пересчитываются сами.</li>
+            <li>Справочники монтажников и объектов строятся из фактических данных выгрузки, а не из захардкоженного списка.</li>
+            <li>Имя файла — tabel-ГГГГ-ММ-ДД_ГГГГ-ММ-ДД.xlsx, ответ отдаётся вложением с типом xlsx.</li>
+            <li>Записи без объекта попадают в строку «Без объекта».</li>
+            <li>Доступно только администратору: монтажник, заказчик и неавторизованный получают 403. Кривые даты и период «с» позже «по» — 400.</li>
+            <li>Пустой период — валидная книга с пустым «Табелем» и нулевыми сводками, а не ошибка.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/api/export/timesheet/route.ts · src/lib/timesheet-export.ts · src/app/admin/timesheet/page.tsx</p>
+        </article>
+      </div>
+
+      <h3 id="gr-i"><span class="gkey">I</span> Взаиморасчёты</h3>
+      <div class="stories">
+
+        <article class="story r-a" id="US-37">
+          <div class="head"><span class="sid">US-37</span><h4>Внести начисление или выплату</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> зафиксировать начисление монтажнику или выплату ему, <b>чтобы</b> вести взаиморасчёты в одной системе с работами.</p>
+          <ul>
+            <li>Форма: монтажник, тип («Начисление» / «Выплата»), сумма (больше нуля), объект (необязательно), комментарий.</li>
+            <li>Сумма всегда положительная — направление задаётся типом записи.</li>
+            <li>Сохраняется, кто и когда создал запись.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/finance/page.tsx · src/app/actions/finance.ts</p>
+        </article>
+
+        <article class="story r-a" id="US-38">
+          <div class="head"><span class="sid">US-38</span><h4>Видеть балансы и историю расчётов</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> видеть, сколько я должен каждому монтажнику, <b>чтобы</b> планировать выплаты.</p>
+          <ul>
+            <li>Таблица балансов по монтажникам: начислено − выплачено, с точностью до копеек.</li>
+            <li>История записей: дата, участник, тип, сумма, объект, комментарий — последние 200 записей.</li>
+            <li>Раздел виден только администратору. У монтажника экрана с его финансовыми записями в текущей версии нет — модель данных к этому готова, интерфейс не сделан.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/finance/page.tsx</p>
+        </article>
+      </div>
+
+      <h3 id="gr-j"><span class="gkey">J</span> Наблюдение за прогрессом и пользователи</h3>
+      <div class="stories">
+
+        <article class="story r-z" id="US-39">
+          <div class="head"><span class="sid">US-39</span><h4>Видеть свои объекты с прогрессом</h4><span class="who-tag">Заказчик</span></div>
+          <p class="want"><b>Как</b> заказчик, <b>я хочу</b> видеть, как идут работы на моих объектах, <b>чтобы</b> не звонить прорабу за статусом.</p>
+          <ul>
+            <li>Список объектов, где я указан заказчиком; чужие объекты не видны и недоступны по прямой ссылке.</li>
+            <li>По каждому объекту — адрес, статус и полоса прогресса по задачам.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/customer/page.tsx</p>
+        </article>
+
+        <article class="story r-z" id="US-40">
+          <div class="head"><span class="sid">US-40</span><h4>Видеть детализацию по подпроектам без чувствительных данных</h4><span class="who-tag">Заказчик</span></div>
+          <p class="want"><b>Как</b> заказчик, <b>я хочу</b> видеть, какие работы уже сделаны, <b>чтобы</b> понимать, за что платить.</p>
+          <ul>
+            <li>По каждому подпроекту — прогресс и таблица задач: название и статус.</li>
+            <li>Заказчику не показываются: монтажники, склад и остатки материалов, техкарты, табель, финансы, история переходов задач.</li>
+            <li>Кабинет заказчика полностью read-only — действий и форм в нём нет.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/customer/sites/[siteId]/page.tsx · src/app/customer/layout.tsx</p>
+        </article>
+
+        <article class="story r-a" id="US-41">
+          <div class="head"><span class="sid">US-41</span><h4>Видеть список пользователей</h4><span class="who-tag">Администратор</span></div>
+          <p class="want"><b>Как</b> администратор, <b>я хочу</b> видеть всех зарегистрированных монтажников и заказчиков, <b>чтобы</b> знать, кого можно назначить на объект или прикрепить к нему.</p>
+          <ul>
+            <li>Таблица: имя, роль, e-mail, телефон.</li>
+            <li>Раздел только для просмотра — пользователи регистрируются сами (US-01), администратор их не создаёт и не редактирует.</li>
+          </ul>
+          <p class="src">Реализовано: src/app/admin/users/page.tsx</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ ЮЗ-КЕЙСЫ ============ -->
+    <section class="sec" id="cases">
+      <h2>Сценарии использования</h2>
+      <p>
+        Двенадцать сценариев, покрывающих все реализованные истории.
+        Альтернативные потоки описывают фактическое поведение системы —
+        конкретные сообщения об ошибках и то, что происходит с данными при сбое.
+      </p>
+
+      <div class="ucs">
+
+        <article class="uc" id="UC-01">
+          <div class="uc-head">
+            <span class="ucid">UC-01</span>
+            <h4>Регистрация и вход в систему</h4>
+          </div>
+          <div class="facts">
+            <span><b>Основной актор:</b> монтажник или заказчик</span>
+            <span><b>Предусловия:</b> приложение развёрнуто, сид-скрипт выполнен (создан администратор)</span>
+          </div>
+          <div class="flow">
+            <h5>Основной поток</h5>
+            <ol>
+              <li>Пользователь открывает <code>/register</code>.</li>
+              <li>Выбирает роль: «Монтажник» или «Заказчик».</li>
+              <li>Заполняет ФИО, e-mail, пароль (не короче 6 символов), при желании — телефон.</li>
+              <li>Отправляет форму.</li>
+              <li>Система проверяет данные, убеждается, что e-mail свободен, хэширует пароль (bcrypt) и создаёт пользователя.</li>
+              <li>Система выдаёт сессионную cookie и перенаправляет пользователя в кабинет его роли.</li>
+            </ol>
+          </div>
+          <div class="flow alt">
+            <h5>Альтернативные потоки</h5>
+            <ul>
+              <li><b>1a. Учётная запись уже есть.</b> Пользователь открывает <code>/login</code> и входит. При неверных данных — «Неверный e-mail или пароль» без уточнения, что именно неверно.</li>
+              <li><b>5a. E-mail занят.</b> Регистрация отклоняется: «Пользователь с таким e-mail уже зарегистрирован». Данные не сохраняются.</li>
+              <li><b>5b. Пароль короче 6 символов или e-mail некорректен.</b> Возвращается сообщение валидации, пользователь остаётся на странице.</li>
+              <li><b>2a. Попытка зарегистрироваться администратором.</b> Такой роли в форме нет — администратор создаётся только сид-скриптом.</li>
+              <li><b>6a. Открыта страница чужого кабинета.</b> Система перенаправляет в собственный кабинет, а не показывает ошибку доступа.</li>
+            </ul>
+          </div>
+          <p class="post"><b>Постусловие:</b> пользователь аутентифицирован, сессия действует 7 дней, пользователь появился в списке администратора и доступен для назначения на объект.</p>
+          <p class="covers">Истории: US-01 · US-02 · US-03 · US-04 · US-05</p>
+        </article>
+
+        <article class="uc" id="UC-02">
+          <div class="uc-head">
+            <span class="ucid">UC-02</span>
+            <h4>Заведение операции с технологической картой</h4>
+          </div>
+          <div class="facts">
+            <span><b>Основной актор:</b> администратор</span>
+            <span><b>Предусловия:</b> администратор вошёл в систему</span>
+          </div>
+          <div class="flow">
+            <h5>Основной поток</h5>
+            <ol>
+              <li>Администратор открывает «Материалы» и заводит нужные материалы: название и единица измерения. Часть базовых материалов уже создана сид-скриптом.</li>
+              <li>Открывает «Операции» и создаёт операцию: название, категория, описание, инструменты (одной строкой через запятую).</li>
+              <li>Открывает созданную операцию.</li>
+              <li>Добавляет в техкарту материал и норму расхода на одну операцию.</li>
+              <li>Повторяет шаг 4 для всех материалов операции.</li>
+            </ol>
+          </div>
+          <div class="flow alt">
+            <h5>Альтернативные потоки</h5>
+            <ul>
+              <li><b>4a. Материал уже есть в техкарте.</b> Повторное добавление перезаписывает норму новым значением, а не суммирует её.</li>
+              <li><b>4b. Количество ноль или отрицательное.</b> Отклоняется: «Укажите количество больше нуля».</li>
+              <li><b>5a. Норма указана ошибочно.</b> Строка удаляется кнопкой «Удалить» и добавляется заново. На уже созданные задачи и выполненные списания это не влияет.</li>
+              <li><b>1a. Нужного материала нет в справочнике.</b> Администратор возвращается в «Материалы» и создаёт его — форма техкарты выбирает только из существующих.</li>
+            </ul>
+          </div>
+          <p class="post"><b>Постусловие:</b> операция доступна для создания задач, её техкарта определяет набор полей в форме завершения задачи.</p>
+          <p class="covers">Истории: US-06 · US-07 · US-08 · US-09 · US-10 · US-11</p>
+        </article>
+
+        <article class="uc" id="UC-03">
+          <div class="uc-head">
+            <span class="ucid">UC-03</span>
+            <h4>Запуск объекта</h4>
+          </div>
+          <div class="facts">
+            <span><b>Основной актор:</b> администратор</span>
+            <span><b>Предусловия:</b> монтажники и заказчик зарегистрированы — либо будут прикреплены позже</span>
+          </div>
+          <div class="flow">
+            <h5>Основной поток</h5>
+            <ol>
+              <li>Администратор открывает «Объекты» и заполняет форму нового объекта: название и адрес.</li>
+              <li>Выбирает заказчика из списка зарегистрированных.</li>
+              <li>Отправляет форму. Система создаёт объект в статусе «Активен» и автоматически заводит склад объекта.</li>
+              <li>Администратор открывает страницу объекта и назначает на него монтажников.</li>
+            </ol>
+          </div>
+          <div class="flow alt">
+            <h5>Альтернативные потоки</h5>
+            <ul>
+              <li><b>2a. Заказчик ещё не зарегистрировался.</b> Администратор выбирает «— без заказчика (можно прикрепить позже) —». Впоследствии на странице объекта появляется блок «Прикрепить заказчика»; после прикрепления блок исчезает.</li>
+              <li><b>4a. Монтажник ушёл с объекта.</b> Администратор снимает его кнопкой «Снять». Задачи, уже закреплённые за ним, остаются закреплёнными — система не освобождает их автоматически.</li>
+              <li><b>4b. Работы приостановлены или завершены.</b> Администратор меняет статус объекта. Переход возможен между любыми статусами; на доступ к задачам статус объекта не влияет.</li>
+            </ul>
+          </div>
+          <p class="post"><b>Постусловие:</b> объект создан, у него есть склад, назначенные монтажники видят его в своём кабинете, заказчик (если прикреплён) — в своём.</p>
+          <p class="covers">Истории: US-12 · US-13 · US-14 · US-15 · US-16 · US-17</p>
+        </article>
+
+        <article class="uc" id="UC-04">
+          <div class="uc-head">
+            <span class="ucid">UC-04</span>
+            <h4>Планирование работ на объекте</h4>
+          </div>
+          <div class="facts">
+            <span><b>Основной актор:</b> администратор</span>
+            <span><b>Предусловия:</b> объект создан, в справочнике есть хотя бы одна операция</span>
+          </div>
+          <div class="flow">
+            <h5>Основной поток</h5>
+            <ol>
+              <li>Администратор открывает страницу объекта.</li>
+              <li>Создаёт подпроект по направлению работ — например «Вентиляция».</li>
+              <li>Открывает подпроект.</li>
+              <li>Создаёт задачу: выбирает операцию из справочника, задаёт название и, при необходимости, описание.</li>
+              <li>Повторяет шаг 4 для всех задач подпроекта.</li>
+              <li>Повторяет шаги 2–5 для остальных направлений: электрика, автоматика, кондиционирование.</li>
+            </ol>
+          </div>
+          <div class="flow alt">
+            <h5>Альтернативные потоки</h5>
+            <ul>
+              <li><b>4a. Нужно закрепить задачу за конкретным монтажником.</b> Такой возможности нет: задача всегда создаётся свободной, монтажник берёт её сам. Это осознанное решение MVP.</li>
+              <li><b>4b. Нужной операции нет в справочнике.</b> Администратор заводит её (UC-02) и возвращается к созданию задачи.</li>
+              <li><b>3a. Открыт подпроект другого объекта.</b> Система возвращает «страница не найдена».</li>
+            </ul>
+          </div>
+          <p class="post"><b>Постусловие:</b> задачи созданы в статусе «Свободна», без исполнителя, и видны монтажникам, назначенным на объект.</p>
+          <p class="covers">Истории: US-18 · US-19 · US-20</p>
+        </article>
+
+        <article class="uc" id="UC-05">
+          <div class="uc-head">
+            <span class="ucid">UC-05</span>
+            <h4>Пополнение склада объекта</h4>
+          </div>
+          <div class="facts">
+            <span><b>Основной актор:</b> администратор</span>
+            <span><b>Предусловия:</b> объект создан, материал есть в справочнике</span>
+          </div>
+          <div class="flow">
+            <h5>Основной поток</h5>
+            <ol>
+              <li>Администратор открывает страницу объекта.</li>
+              <li>В блоке склада выбирает материал, указывает поступившее количество и, при желании, комментарий.</li>
+              <li>Отправляет форму.</li>
+              <li>Система в одной транзакции увеличивает остаток и создаёт запись движения типа «Приход» с указанием, кто и когда оприходовал.</li>
+              <li>Обновлённый остаток отображается в таблице склада объекта.</li>
+            </ol>
+          </div>
+          <div class="flow alt">
+            <h5>Альтернативные потоки</h5>
+            <ul>
+              <li><b>2a. Количество ноль или отрицательное.</b> Отклоняется: «Укажите количество больше нуля».</li>
+              <li><b>4a. У объекта нет склада.</b> Возвращается «На объекте не настроен склад». В штатном сценарии этого не происходит: склад создаётся вместе с объектом.</li>
+              <li><b>1a. Материал пытается оприходовать монтажник.</b> Раздел ему недоступен — приходовать материалы может только администратор.</li>
+            </ul>
+          </div>
+          <p class="post"><b>Постусловие:</b> остаток материала на складе объекта увеличен, движение зафиксировано в журнале.</p>
+          <p class="covers">Истории: US-21 · US-22</p>
+        </article>
+
+        <article class="uc" id="UC-06">
+          <div class="uc-head">
+            <span class="ucid">UC-06</span>
+            <h4>Взятие задачи в работу</h4>
+          </div>
+          <div class="facts">
+            <span><b>Основной актор:</b> монтажник</span>
+            <span><b>Предусловия:</b> монтажник назначен на объект, в подпроекте есть задача в статусе «Свободна»</span>
+          </div>
+          <div class="flow">
+            <h5>Основной поток</h5>
+            <ol>
+              <li>Монтажник открывает свой кабинет и видит объекты, на которые назначен, со счётчиками свободных и своих задач.</li>
+              <li>Открывает объект и просматривает задачи по подпроектам.</li>
+              <li>Нажимает «Взять в работу» у свободной задачи.</li>
+              <li>Система закрепляет задачу за монтажником, переводит её в статус «Назначена», фиксирует время назначения и записывает переход в историю.</li>
+              <li>Монтажник открывает карточку задачи и нажимает «Выполнить (начать работу)».</li>
+              <li>Система переводит задачу в статус «В работе» и фиксирует время старта.</li>
+            </ol>
+          </div>
+          <div class="flow alt">
+            <h5>Альтернативные потоки</h5>
+            <ul>
+              <li><b>3a. Задачу за это время взял другой монтажник.</b> Возвращается «Задача уже закреплена за кем-то», задача не переназначается.</li>
+              <li><b>3b. Монтажник не назначен на объект.</b> Возвращается «Вы не назначены на этот объект». В интерфейсе такая задача ему и не показывается — проверка защищает от обращения по прямой ссылке.</li>
+              <li><b>5a. Открыта чужая задача по прямой ссылке.</b> Система возвращает «страница не найдена».</li>
+              <li><b>5b. Задача возобновляется после паузы.</b> Время первого старта не перезаписывается — сохраняется момент, когда работа началась впервые.</li>
+              <li><b>4a. Монтажник хочет отказаться от взятой задачи.</b> Такой возможности нет: обратного перехода «Назначена → Свободна» в системе не существует.</li>
+            </ul>
+          </div>
+          <p class="post"><b>Постусловие:</b> задача в статусе «В работе», закреплена за монтажником, оба перехода записаны в историю.</p>
+          <p class="covers">Истории: US-23 · US-24 · US-25 · US-30</p>
+        </article>
+
+        <article class="uc" id="UC-07">
+          <div class="uc-head">
+            <span class="ucid">UC-07</span>
+            <h4>Приостановка и блокировка задачи</h4>
+          </div>
+          <div class="facts">
+            <span><b>Основной актор:</b> монтажник</span>
+            <span><b>Предусловия:</b> задача закреплена за монтажником и находится в статусе «В работе»</span>
+          </div>
+          <div class="flow">
+            <h5>Основной поток</h5>
+            <ol>
+              <li>Монтажник открывает карточку задачи.</li>
+              <li>Выбирает действие: «На паузу» — работа прервана по его инициативе (конец смены, переключение на другую задачу); «Заблокировать» — работа невозможна по внешней причине (нет материала, не готовы смежники).</li>
+              <li>Вводит причину — поле обязательно.</li>
+              <li>Система переводит задачу в статус «Пауза» или «Заблокирована» и записывает переход с причиной в историю.</li>
+              <li>Когда препятствие устранено, монтажник нажимает «Возобновить».</li>
+              <li>Система возвращает задачу в статус «В работе» и записывает переход.</li>
+            </ol>
+          </div>
+          <div class="flow alt">
+            <h5>Альтернативные потоки</h5>
+            <ul>
+              <li><b>3a. Причина не указана или короче 3 символов.</b> Действие отклоняется: «Укажите причину». Статус не меняется.</li>
+              <li><b>2a. Задача не в статусе «В работе».</b> Возвращается «Поставить на паузу можно только задачу в работе» / «Заблокировать можно только задачу в работе». Кнопки в этом случае и не показываются.</li>
+              <li><b>5a. Причина при возобновлении.</b> Не требуется — возобновление выполняется одной кнопкой.</li>
+              <li><b>5b. Прямой переход «Пауза → Заблокирована».</b> Не поддерживается: нужно сначала возобновить задачу, затем заблокировать.</li>
+            </ul>
+          </div>
+          <p class="post"><b>Постусловие:</b> статус задачи отражает реальное положение дел, причина простоя сохранена в истории и видна на карточке задачи.</p>
+          <p class="covers">Истории: US-26 · US-27 · US-28 · US-30</p>
+        </article>
+
+        <article class="uc key-uc" id="UC-08">
+          <div class="uc-head">
+            <span class="ucid">UC-08 · ключевой сценарий</span>
+            <h4>Завершение задачи со списанием материалов</h4>
+          </div>
+          <div class="facts">
+            <span><b>Основной актор:</b> монтажник</span>
+            <span><b>Заинтересованные:</b> администратор — от корректности списания зависят остатки и снабжение объекта</span>
+            <span><b>Предусловия:</b> задача закреплена за монтажником, в статусе «В работе»; у объекта есть склад с остатками</span>
+          </div>
+          <p>Здесь учёт работ смыкается со складским учётом — это самый нагруженный правилами сценарий системы.</p>
+          <div class="flow">
+            <h5>Основной поток</h5>
+            <ol>
+              <li>Монтажник открывает карточку задачи и находит блок «Завершить задачу».</li>
+              <li>Система показывает по одному полю на каждый материал из технологической карты операции; количество предзаполнено нормой из техкарты.</li>
+              <li>Монтажник корректирует количества по факту. Ноль означает, что материал не расходовался.</li>
+              <li>Нажимает «Завершить и отправить на проверку».</li>
+              <li>Система открывает транзакцию и для каждой позиции с количеством больше нуля: проверяет остаток материала на складе объекта; уменьшает остаток на указанное количество; создаёт запись движения типа «Расход», привязанную к этой задаче и к этому монтажнику.</li>
+              <li>В той же транзакции система переводит задачу в статус «На проверке», фиксирует время завершения и записывает переход в историю.</li>
+              <li>Транзакция фиксируется. Задача появляется в очереди на проверку у администратора.</li>
+            </ol>
+          </div>
+          <div class="flow alt">
+            <h5>Альтернативные потоки</h5>
+            <ul>
+              <li><b>5a. Материала не хватает на складе.</b> Транзакция откатывается целиком: не списывается ни один материал — даже те позиции, что были успешно обработаны до проблемной. Задача остаётся в статусе «В работе», запись в историю не создаётся. Монтажник видит сообщение вида «Недостаточно материала «Гайка М8» на складе: доступно 5, требуется 12». Дальше он либо просит администратора оприходовать материал (UC-05), либо блокирует задачу с причиной (UC-07).</li>
+              <li><b>2a. В техкарте операции материалы не заданы.</b> Система сообщает «В техкарте операции материалы не заданы», задача завершается без списания.</li>
+              <li><b>3a. Все количества равны нулю.</b> Списания не происходит, задача переходит на проверку.</li>
+              <li><b>4a. Задача не в статусе «В работе».</b> Возвращается «Завершить можно только задачу в работе».</li>
+              <li><b>5b. У объекта нет склада.</b> Возвращается «На объекте не настроен склад». В штатном сценарии не встречается — склад создаётся вместе с объектом.</li>
+            </ul>
+          </div>
+          <p class="post"><b>Постусловие:</b> остатки на складе объекта уменьшены на фактический расход, каждое списание зафиксировано в журнале движений со ссылкой на задачу и монтажника, задача ожидает приёмки.</p>
+          <p class="covers">Истории: US-22 · US-29 · US-30</p>
+        </article>
+
+        <article class="uc" id="UC-09">
+          <div class="uc-head">
+            <span class="ucid">UC-09</span>
+            <h4>Приёмка или возврат задачи</h4>
+          </div>
+          <div class="facts">
+            <span><b>Основной актор:</b> администратор</span>
+            <span><b>Предусловия:</b> есть хотя бы одна задача в статусе «На проверке»</span>
+          </div>
+          <div class="flow">
+            <h5>Основной поток</h5>
+            <ol>
+              <li>Администратор открывает раздел «Проверка задач» и видит все задачи, ожидающие приёмки, с указанием объекта, подпроекта, операции и монтажника.</li>
+              <li>Оценивает выполненную работу.</li>
+              <li>Нажимает «Принять».</li>
+              <li>Система переводит задачу в статус «Выполнена», фиксирует время приёмки и записывает переход в историю.</li>
+              <li>Задача засчитывается в прогресс объекта — его видят администратор и заказчик.</li>
+            </ol>
+          </div>
+          <div class="flow alt">
+            <h5>Альтернативные потоки</h5>
+            <ul>
+              <li><b>3a. Работа выполнена некачественно.</b> Администратор заполняет поле причины и нажимает «Вернуть в работу». Причина обязательна (не короче 3 символов); без неё действие отклоняется: «Укажите причину возврата». Задача возвращается в статус «В работе», причина видна монтажнику в истории.</li>
+              <li><b>3b. Списанные материалы при возврате.</b> На склад они не возвращаются. При повторном завершении монтажник указывает только дополнительный расход, иначе материал спишется дважды.</li>
+              <li><b>3c. Задача уже принята.</b> Возвращается «Принять можно только задачу на проверке». Статус «Выполнена» конечный — вернуть задачу из него нельзя ни администратору, ни монтажнику.</li>
+              <li><b>1a. Приёмку пытается выполнить монтажник.</b> Раздел ему недоступен: принять или вернуть задачу может только администратор.</li>
+            </ul>
+          </div>
+          <p class="post"><b>Постусловие:</b> задача либо принята и учтена в прогрессе, либо возвращена монтажнику с зафиксированной причиной.</p>
+          <p class="covers">Истории: US-31 · US-32 · US-33</p>
+        </article>
+
+        <article class="uc" id="UC-10">
+          <div class="uc-head">
+            <span class="ucid">UC-10</span>
+            <h4>Ведение табеля</h4>
+          </div>
+          <div class="facts">
+            <span><b>Основной актор:</b> монтажник</span>
+            <span><b>Заинтересованные:</b> администратор — использует табель для контроля загрузки и расчёта выплат</span>
+          </div>
+          <div class="flow">
+            <h5>Основной поток</h5>
+            <ol>
+              <li>Монтажник открывает «Табель».</li>
+              <li>Заполняет форму: дата (по умолчанию сегодняшняя), количество часов, при необходимости объект и комментарий.</li>
+              <li>Отправляет форму.</li>
+              <li>Система сохраняет запись на текущего пользователя — идентификатор берётся из сессии, подменить его через форму невозможно.</li>
+              <li>Запись появляется в таблице собственных записей монтажника.</li>
+              <li>Администратор видит эту запись в сводном табеле по всем монтажникам.</li>
+            </ol>
+          </div>
+          <div class="flow alt">
+            <h5>Альтернативные потоки</h5>
+            <ul>
+              <li><b>2a. Указано больше 24 часов.</b> Отклоняется: «Не может быть больше 24 часов».</li>
+              <li><b>2b. Указан ноль или отрицательное число.</b> Отклоняется: «Укажите часы больше нуля».</li>
+              <li><b>2c. Нужного объекта нет в списке.</b> В выборе только объекты, на которые монтажник назначен. Объект можно не указывать вовсе.</li>
+              <li><b>3a. Запись за эту дату уже внесена.</b> Система разрешает несколько записей за один день — дубли не блокируются.</li>
+              <li><b>5a. Нужно исправить или удалить запись.</b> Такой возможности нет: записи табеля только добавляются.</li>
+              <li><b>6a. Администратор хочет исправить чужую запись.</b> Сводный табель доступен только для просмотра.</li>
+            </ul>
+          </div>
+          <p class="post"><b>Постусловие:</b> отработанные часы зафиксированы, видны монтажнику в его табеле и администратору в сводном.</p>
+          <p class="covers">Истории: US-34 · US-35 · US-36 · US-42 · US-44</p>
+        </article>
+
+        <article class="uc" id="UC-11">
+          <div class="uc-head">
+            <span class="ucid">UC-11</span>
+            <h4>Взаиморасчёты с монтажником</h4>
+          </div>
+          <div class="facts">
+            <span><b>Основной актор:</b> администратор</span>
+            <span><b>Предусловия:</b> в системе зарегистрирован хотя бы один монтажник</span>
+          </div>
+          <div class="flow">
+            <h5>Основной поток</h5>
+            <ol>
+              <li>Администратор открывает «Финансы» и видит балансы по монтажникам: начислено минус выплачено.</li>
+              <li>Сверяет объём работ и табель.</li>
+              <li>Заполняет форму новой записи: монтажник, тип («Начисление» или «Выплата»), сумма, при необходимости объект и комментарий.</li>
+              <li>Отправляет форму. Система сохраняет запись вместе с тем, кто и когда её создал.</li>
+              <li>Баланс монтажника пересчитывается: начисления увеличивают его, выплаты уменьшают.</li>
+            </ol>
+          </div>
+          <div class="flow alt">
+            <h5>Альтернативные потоки</h5>
+            <ul>
+              <li><b>3a. Сумма ноль или отрицательная.</b> Отклоняется: «Укажите сумму больше нуля». Сумма всегда положительная — направление задаётся типом записи.</li>
+              <li><b>3b. Монтажников в системе нет.</b> Форма не показывается; выводится подсказка «Сначала должен зарегистрироваться хотя бы один монтажник».</li>
+              <li><b>4a. Запись внесена ошибочно.</b> Отредактировать или удалить её нельзя — вносится компенсирующая запись противоположного типа.</li>
+              <li><b>1a. Раздел пытается открыть монтажник или заказчик.</b> Финансы видит только администратор. Отдельного кабинета со своими финансовыми записями у монтажника в текущей версии нет.</li>
+            </ul>
+          </div>
+          <p class="post"><b>Постусловие:</b> взаиморасчёт зафиксирован, баланс монтажника отражает разницу между начисленным и выплаченным.</p>
+          <p class="covers">Истории: US-37 · US-38</p>
+        </article>
+
+        <article class="uc" id="UC-12">
+          <div class="uc-head">
+            <span class="ucid">UC-12</span>
+            <h4>Наблюдение заказчика за прогрессом</h4>
+          </div>
+          <div class="facts">
+            <span><b>Основной актор:</b> заказчик</span>
+            <span><b>Предусловия:</b> заказчик зарегистрирован и прикреплён к объекту</span>
+          </div>
+          <div class="flow">
+            <h5>Основной поток</h5>
+            <ol>
+              <li>Заказчик входит в систему и попадает в свой кабинет.</li>
+              <li>Видит список объектов, где он указан заказчиком: название, адрес, статус и полосу прогресса по задачам.</li>
+              <li>Открывает объект.</li>
+              <li>Видит подпроекты с прогрессом по каждому и таблицу задач: название и статус.</li>
+            </ol>
+          </div>
+          <div class="flow alt">
+            <h5>Альтернативные потоки</h5>
+            <ul>
+              <li><b>2a. Объектов нет.</b> Выводится пустой список — заказчик ещё не прикреплён ни к одному объекту, либо администратор прикрепит его позже.</li>
+              <li><b>3a. Открыт чужой объект по прямой ссылке.</b> Система возвращает «страница не найдена».</li>
+              <li><b>4a. Заказчик хочет увидеть монтажников, списанные материалы или стоимость.</b> Эти данные ему не показываются: монтажники, склад и остатки, техкарты, табель, финансы и история переходов задач скрыты от роли заказчика.</li>
+              <li><b>4b. Заказчик хочет принять работу или оставить комментарий.</b> Кабинет заказчика полностью read-only: действий, меняющих данные, в нём нет.</li>
+            </ul>
+          </div>
+          <p class="post"><b>Постусловие:</b> заказчик проинформирован о ходе работ; коммерческие и внутренние данные ему не раскрыты.</p>
+          <p class="covers">Истории: US-39 · US-40</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ ЧЕГО НЕТ ============ -->
+    <section class="sec" id="net">
+      <h2>Чего в текущей версии нет</h2>
+      <p>
+        Осознанно не реализовано в MVP. Перечислено, чтобы документ не создавал
+        ложных ожиданий.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Возможность</th><th>Комментарий</th></tr></thead>
+          <tbody>
+            <tr><td>Смена пароля из интерфейса</td><td>Экрана нет. Пароль администратора меняется через повторный сид с другими переменными окружения.</td></tr>
+            <tr><td>Назначение задачи конкретному монтажнику</td><td>Только самозахват свободной задачи монтажником.</td></tr>
+            <tr><td>Отказ от взятой задачи</td><td>Обратного перехода «Назначена → Свободна» нет ни у монтажника, ни у администратора.</td></tr>
+            <tr><td>Возврат задачи из статуса «Выполнена»</td><td>Статус конечный.</td></tr>
+            <tr><td>Редактирование и удаление справочников</td><td>Материалы, операции, объекты, подпроекты и задачи только создаются. Удаляются лишь строки техкарты и назначения монтажников.</td></tr>
+            <tr><td>Возврат материалов на склад</td><td>Списание при завершении задачи необратимо; корректировка возможна только новым приходом.</td></tr>
+            <tr><td>Кабинет финансов у монтажника</td><td>Данные есть в модели, интерфейса нет.</td></tr>
+            <tr><td>Фотографии и файлы с объектов</td><td>Файлового хранилища в MVP нет.</td></tr>
+            <tr><td>Акты выполненных работ, уведомления</td><td>Не реализовано. Выгрузка табеля в Excel появилась (US-44), остального нет.</td></tr>
+            <tr><td>Отрицательные часы в табеле</td><td>Приложение принимает только часы больше нуля. Учёта штрафов и прогулов минусом в системе нет.</td></tr>
+            <tr><td>Row Level Security на уровне PostgreSQL</td><td>Авторизация реализована на уровне приложения; обоснование — в README.md репозитория.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <span>Гильдия Комфорта · учёт монтажных работ: автоматика, вентиляция, электрика, кондиционирование</span>
+      <span>Источник: docs/user-stories.md · docs/use-cases.md · docs/story-map.md · документ отражает состояние на 04.08.2026</span>
+    </footer>
+
+  </main>
+</div>
