@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import AppVersion from "@/components/AppVersion";
+import AppStatus from "@/components/AppStatus";
 
 export const metadata: Metadata = {
   title: "Гильдия Комфорта",
@@ -16,7 +16,7 @@ export default function RootLayout({
     <html lang="ru">
       <body>
         {children}
-        <AppVersion />
+        <AppStatus />
       </body>
     </html>
   );
